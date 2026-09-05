@@ -1,0 +1,53 @@
+PHANTOM TWEEKS — BEFORE YOU INSTALL
+
+Phantom Tweeks is a performance analysis and optimization tool for
+Windows 10 and Windows 11.
+
+WHAT IT DOES
+  • Measures your hardware, storage, network and frame times.
+  • Recommends changes, each with a technical reason and a confidence rating.
+  • Applies only what you approve, after writing a verified backup.
+  • Lets you roll back everything with one click.
+
+WHAT IT WILL NEVER DO
+  • Close or suspend your game, Steam, Discord, Epic, OBS or anti-cheat.
+  • Disable Windows Defender, Firewall, Windows Update or security mitigations.
+  • Modify game files, executables or anti-cheat software.
+  • Delete your personal files.
+  • Overclock, undervolt, or disable CPU cores.
+  • Claim an improvement it did not measure.
+
+If a tweak is unlikely to help your specific hardware, Phantom Tweeks will
+tell you "No change recommended." That is the product working correctly.
+
+Your data stays on your PC. There is no telemetry in this build.
+
+WHAT THE INSTALLER CREATES
+--------------------------
+Program files:
+  C:\Program Files\Phantom Tweeks\      (the app, docs and icon)
+
+Your data, created during installation:
+  %LOCALAPPDATA%\PhantomTweeks\
+    config.json    your settings (safe defaults; nothing automatic is on)
+    backups\       a restore point is written here before ANY change
+    snapshots\     full configuration snapshots you create yourself
+    profiles\      per-game optimization profiles
+    logs\          local diagnostics; logs\crash\ holds crash reports
+    updates\       verified update downloads are staged here
+    history\       benchmark and performance history
+
+Nothing in that folder is ever uploaded anywhere.
+
+The installer runs "PhantomTweeks.exe config --init" once to create the tree
+and write default settings. Reinstalling or upgrading KEEPS your existing
+settings - the step never overwrites a configuration that already exists.
+
+UNINSTALLING
+------------
+Uninstalling removes the program files but deliberately KEEPS
+%LOCALAPPDATA%\PhantomTweeks. Your backups live there, and deleting them
+would leave you unable to undo changes the app made.
+
+If you want to revert everything first, reinstall and use RESTORE EVERYTHING
+before deleting that folder.
