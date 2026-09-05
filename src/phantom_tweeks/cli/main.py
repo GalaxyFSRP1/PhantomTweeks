@@ -773,6 +773,31 @@ def cmd_expert(app: PhantomApp, args) -> int:
 
 
 def cmd_config(app: PhantomApp, args) -> int:
+    if getattr(args, "init", False):
+        # Runs during installation. Creates the per-user data tree and writes
+        # default settings if none exist. Must never overwrite an existing
+        # configuration - a reinstall or upgrade has to keep your choices.
+        from ..core import paths
+        paths.ensure_dirs()
+        created = []
+        for sub_dir in ("backups", "logs", "logs/crash", "profiles",
+                        "snapshots", "updates"):
+            d = paths.ROOT / sub_dir
+            if not d.exists():
+                try:
+                    d.mkdir(parents=True, exist_ok=True)
+                    created.append(sub_dir)
+                except OSError as exc:
+                    print(f"Could not create {d}: {exc}")
+        existed = paths.CONFIG_FILE.exists()
+        app.config.save()
+        print(f"Data folder: {paths.ROOT}")
+        if created:
+            print("Created: " + ", ".join(created))
+        print("Settings kept (existing configuration found)." if existed
+              else "Default settings written. Nothing automatic is enabled.")
+        return 0
+
     _h("CONFIGURATION")
     if args.set:
         key, _, value = args.set.partition("=")
@@ -940,6 +965,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("config", help="view or change settings")
     s.add_argument("--set", metavar="KEY=VALUE")
+    s.add_argument("--init", action="store_true",
+                   help="create the data folders and default settings, then "
+                        "exit (used by the installer)")
     s.add_argument("-y", "--yes", action="store_true")
     s.set_defaults(fn=cmd_config)
 

@@ -6,6 +6,8 @@ shipped application.
 """
 from __future__ import annotations
 
+import json
+import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -240,3 +242,68 @@ def test_build_script_explains_the_maintenance_fee_error():
     ps1 = (ROOT / "build.ps1").read_text(encoding="utf-8-sig")
     assert "WIX7015" in ps1
     assert "--version 5.0.2" in ps1, "no fee-free version suggested"
+
+
+# ------------------------------------------------- installer data folder
+
+@pytest.mark.repo_hygiene
+def test_installer_creates_the_user_data_folder():
+    """The installer must create %LOCALAPPDATA%\\PhantomTweeks up front.
+
+    Creating it lazily on first run means a permissions problem surfaces when
+    the user is trying to take a backup, which is the worst possible moment.
+    """
+    iss = (ROOT / "build" / "installer.iss").read_text(encoding="utf-8")
+    assert "[Dirs]" in iss, "the installer never creates any directories"
+    for sub in ("backups", "logs", "profiles", "snapshots", "updates"):
+        assert f"PhantomTweeks\\{sub}" in iss, f"{sub} is not created"
+
+
+@pytest.mark.repo_hygiene
+def test_installer_never_deletes_user_data_on_uninstall():
+    """Backups must survive an uninstall so a user can still roll back."""
+    iss = (ROOT / "build" / "installer.iss").read_text(encoding="utf-8")
+    assert "uninsneveruninstall" in iss, "data folders are not protected"
+    delete_block = iss.split("[UninstallDelete]", 1)[1].split("[", 1)[0]
+    assert "localappdata" not in delete_block.lower(), (
+        "the uninstaller removes user data")
+
+
+@pytest.mark.repo_hygiene
+def test_installer_seeds_default_settings():
+    iss = (ROOT / "build" / "installer.iss").read_text(encoding="utf-8")
+    assert "config --init" in iss, "settings are never initialised"
+    assert "runhidden" in iss, "the init step would flash a console window"
+
+
+def test_config_init_creates_the_tree_and_keeps_existing_settings(tmp_path,
+                                                                  monkeypatch):
+    """`config --init` is what the installer runs. Verify it for real."""
+    import subprocess
+    import sys
+    env = dict(os.environ, PHANTOM_TWEEKS_HOME=str(tmp_path))
+    run = [sys.executable, str(ROOT / "run.py"), "config", "--init"]
+
+    first = subprocess.run(run, capture_output=True, text=True, env=env,
+                           timeout=180)
+    assert first.returncode == 0, first.stderr
+    for sub in ("backups", "logs", "logs/crash", "profiles", "snapshots",
+                "updates"):
+        assert (tmp_path / sub).is_dir(), f"{sub} was not created"
+
+    cfg = tmp_path / "config.json"
+    assert cfg.is_file(), "no settings file was written"
+    data = json.loads(cfg.read_text(encoding="utf-8"))
+    # Nothing automatic may be enabled by a fresh install.
+    assert data["auto_apply_high_confidence"] is False
+    assert data["auto_apply_game_profile"] is False
+    assert data["telemetry"] is False
+
+    # A reinstall must not discard the user's choices.
+    data["expert_mode"] = True
+    cfg.write_text(json.dumps(data), encoding="utf-8")
+    second = subprocess.run(run, capture_output=True, text=True, env=env,
+                            timeout=180)
+    assert second.returncode == 0
+    assert json.loads(cfg.read_text(encoding="utf-8"))["expert_mode"] is True, (
+        "reinstalling wiped the user's settings")

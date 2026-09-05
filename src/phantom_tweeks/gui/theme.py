@@ -63,8 +63,52 @@ def apply(root: tk.Misc) -> ttk.Style:
                     anchor="w", padding=(18, 11), font=FONT)
     style.map("Nav.TButton",
               background=[("active", c["panel"])], foreground=[("active", c["text"])])
-    style.configure("NavActive.TButton", background=c["panel"], foreground=c["accent"],
-                    anchor="w", padding=(18, 11), font=FONT_BOLD)
+    # The active page gets a left accent bar as well as a colour change.
+    # Colour alone is a weak signal on a dark theme, and unusable for anyone
+    # with a red/green or low-contrast vision difference.
+    style.configure("NavActive.TButton", background=c["panel"],
+                    foreground=c["accent"], anchor="w",
+                    padding=(14, 11), font=FONT_BOLD,
+                    borderwidth=0, relief="flat")
+    style.map("NavActive.TButton", background=[("active", c["panel"])])
+
+    # Cards: a hairline border gives depth without heavy chrome.
+    style.configure("Panel.TFrame", background=c["panel"],
+                    relief="flat", borderwidth=1)
+    style.configure("Bordered.TFrame", background=c["panel"],
+                    relief="solid", borderwidth=1, bordercolor=c["border"])
+
+    # A separator that actually reads against the panel colour.
+    style.configure("TSeparator", background=c["border"])
+
+    # Progress bars in the accent colour rather than the platform default.
+    style.configure("Horizontal.TProgressbar", background=c["accent"],
+                    troughcolor=c["panel_alt"], borderwidth=0,
+                    lightcolor=c["accent"], darkcolor=c["accent"])
+    style.configure("Warn.Horizontal.TProgressbar", background=c["warn"],
+                    troughcolor=c["panel_alt"], borderwidth=0,
+                    lightcolor=c["warn"], darkcolor=c["warn"])
+    style.configure("Danger.Horizontal.TProgressbar", background=c["danger"],
+                    troughcolor=c["panel_alt"], borderwidth=0,
+                    lightcolor=c["danger"], darkcolor=c["danger"])
+
+    # Notebook tabs: the default clam tab is a grey lump on a dark theme.
+    style.configure("TNotebook", background=c["bg"], borderwidth=0,
+                    tabmargins=(0, 0, 0, 0))
+    style.configure("TNotebook.Tab", background=c["bg"], foreground=c["muted"],
+                    padding=(16, 9), font=FONT, borderwidth=0)
+    style.map("TNotebook.Tab",
+              background=[("selected", c["panel"]), ("active", c["panel_alt"])],
+              foreground=[("selected", c["accent"]), ("active", c["text"])],
+              expand=[("selected", (0, 0, 0, 0))])
+
+    # Scrollbars: thin and dark instead of the default light chunk.
+    style.configure("Vertical.TScrollbar", background=c["panel_alt"],
+                    troughcolor=c["bg"], borderwidth=0, arrowsize=12,
+                    darkcolor=c["panel_alt"], lightcolor=c["panel_alt"],
+                    bordercolor=c["bg"], arrowcolor=c["muted"])
+    style.map("Vertical.TScrollbar",
+              background=[("active", c["border"]), ("pressed", c["accent_dim"])])
 
     # The clam indicator defaults to a dark box on our dark panel, which made
     # checkboxes effectively invisible (and so felt unclickable). Force contrast.

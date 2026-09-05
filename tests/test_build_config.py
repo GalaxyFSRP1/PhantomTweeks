@@ -219,3 +219,46 @@ def test_spec_collects_the_whole_package():
     """With the entry script outside the package, submodules need collecting."""
     src = SPEC.read_text(encoding="utf-8")
     assert "collect_submodules" in src
+
+
+# ---------------------------------------------------- website accessibility
+
+def _pages():
+    return sorted((ROOT / "website").glob("*.html"))
+
+
+def test_every_page_has_a_working_skip_link():
+    """Keyboard users must be able to bypass the nav on every page."""
+    for page in _pages():
+        text = page.read_text(encoding="utf-8")
+        assert 'class="skip-link"' in text, f"{page.name} has no skip link"
+        assert 'id="main"' in text, f"{page.name} has no #main target"
+
+
+def test_focus_styles_exist():
+    """The default focus ring is invisible on this dark theme."""
+    css = (ROOT / "website" / "assets" / "style.css").read_text(encoding="utf-8")
+    assert ":focus-visible" in css, "no keyboard focus styling"
+    assert "outline" in css
+
+
+def test_reduced_motion_is_respected():
+    css = (ROOT / "website" / "assets" / "style.css").read_text(encoding="utf-8")
+    assert "prefers-reduced-motion" in css, (
+        "animations ignore the OS reduce-motion setting")
+
+
+def test_stylesheet_braces_are_balanced():
+    css = (ROOT / "website" / "assets" / "style.css").read_text(encoding="utf-8")
+    assert css.count("{") == css.count("}"), "unbalanced CSS braces"
+
+
+def test_pages_are_well_formed():
+    import html.parser
+
+    class Strict(html.parser.HTMLParser):
+        def error(self, message):
+            raise ValueError(message)
+
+    for page in _pages():
+        Strict().feed(page.read_text(encoding="utf-8"))

@@ -38,6 +38,22 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional shortcuts:"
 Name: "addtopath";   Description: "Add Phantom Tweeks to PATH (enables the CLI)"; GroupDescription: "Advanced:"; Flags: unchecked
 
+[Dirs]
+; Create the per-user data tree during installation rather than lazily on
+; first run. If a folder cannot be created later (locked-down profile, roaming
+; profile quirk) the app would fail at the worst moment - when the user is
+; trying to back something up. Creating it here surfaces the problem while the
+; installer is still on screen.
+; Note {localappdata} here is the INSTALLING user's profile. Other users get
+; their own tree on first run; see EnsureUserData in [Code].
+Name: "{localappdata}\PhantomTweeks";           Flags: uninsneveruninstall
+Name: "{localappdata}\PhantomTweeks\backups";  Flags: uninsneveruninstall
+Name: "{localappdata}\PhantomTweeks\logs";     Flags: uninsneveruninstall
+Name: "{localappdata}\PhantomTweeks\logs\crash"; Flags: uninsneveruninstall
+Name: "{localappdata}\PhantomTweeks\profiles"; Flags: uninsneveruninstall
+Name: "{localappdata}\PhantomTweeks\snapshots"; Flags: uninsneveruninstall
+Name: "{localappdata}\PhantomTweeks\updates";  Flags: uninsneveruninstall
+
 [Files]
 Source: "..\dist\PhantomTweeks.exe";          DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\*";                          DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs
@@ -54,6 +70,11 @@ Root: HKA; Subkey: "Environment"; ValueType: expandsz; ValueName: "Path"; \
     ValueData: "{olddata};{app}"; Tasks: addtopath; Check: NeedsAddPath(ExpandConstant('{app}'))
 
 [Run]
+; Write the default settings file if the user does not already have one.
+; Every value here is the safe default: nothing automatic is enabled.
+Filename: "{app}\{#AppExeName}"; Parameters: "config --init"; \
+    Flags: runhidden waituntilterminated; StatusMsg: "Preparing your settings..."
+
 Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; \
     Flags: nowait postinstall skipifsilent
 
@@ -73,6 +94,27 @@ begin
     exit;
   end;
   Result := Pos(';' + Param + ';', ';' + OrigPath + ';') = 0;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  DataDir: string;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    DataDir := ExpandConstant('{localappdata}\PhantomTweeks');
+    if not DirExists(DataDir) then
+    begin
+      { Do not fail the install over this - the app recreates the tree on
+        first run. But say so now rather than letting it surprise the user
+        later, when they are trying to take a backup. }
+      MsgBox('Phantom Tweeks could not create its data folder:' + #13#10 +
+             DataDir + #13#10#13#10 +
+             'The app will try again on first launch. If backups do not ' +
+             'work, check the permissions on that folder.',
+             mbInformation, MB_OK);
+    end;
+  end;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);

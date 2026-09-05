@@ -272,6 +272,10 @@ def test_primary_buttons_are_not_clipped():
         for widget in walk(win):
             if widget.winfo_class() != "TButton":
                 continue
+            # Only judge widgets Tk has actually laid out. A widget inside a
+            # hidden container (the update banner) reports height 1, and a
+            # toplevel that was never mapped reports 1 for everything - both
+            # would be false positives rather than real clipping.
             if not widget.winfo_ismapped():
                 continue
             need = widget.winfo_reqheight()
@@ -279,6 +283,10 @@ def test_primary_buttons_are_not_clipped():
             if need > 1 and got < need * 0.6:
                 thin.append(f"{widget.cget('text')!r} {got}px of {need}px")
         assert not thin, "buttons rendered clipped: " + "; ".join(thin)
+        mapped = sum(1 for w in walk(win)
+                     if w.winfo_class() == "TButton" and w.winfo_ismapped())
+        if mapped == 0:
+            pytest.skip("no widgets were mapped; cannot judge clipping here")
     finally:
         win._on_close()
 
@@ -289,8 +297,11 @@ def test_the_update_banner_is_hidden_until_an_update_exists():
     win = _window()
     try:
         win.update_idletasks()
-        assert not win.update_bar.winfo_ismapped(), (
-            "the update banner is visible with no update pending")
+        # winfo_manager() is "" until a widget is packed. Unlike
+        # winfo_ismapped() this does not require the toplevel to be on a
+        # visible screen, so it works on a headless CI runner.
+        assert win.update_bar.winfo_manager() == "", (
+            "the update banner is packed with no update pending")
     finally:
         win._on_close()
 
@@ -307,11 +318,12 @@ def test_the_update_banner_appears_and_dismisses(tmp_path, monkeypatch):
         win._pending_update = info
         win._show_update_banner(info)
         win.update_idletasks()
-        assert win.update_bar.winfo_ismapped(), "the banner never appeared"
+        assert win.update_bar.winfo_manager() == "pack", (
+            "the banner was never packed into the window")
         assert "9.9.9" in win.update_msg.get()
 
         win._dismiss_update()
         win.update_idletasks()
-        assert not win.update_bar.winfo_ismapped(), "dismiss did not hide it"
+        assert win.update_bar.winfo_manager() == "", "dismiss did not remove it"
     finally:
         win._on_close()

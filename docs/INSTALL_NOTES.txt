@@ -21,3 +21,33 @@ If a tweak is unlikely to help your specific hardware, Phantom Tweeks will
 tell you "No change recommended." That is the product working correctly.
 
 Your data stays on your PC. There is no telemetry in this build.
+
+WHAT THE INSTALLER CREATES
+--------------------------
+Program files:
+  C:\Program Files\Phantom Tweeks\      (the app, docs and icon)
+
+Your data, created during installation:
+  %LOCALAPPDATA%\PhantomTweeks\
+    config.json    your settings (safe defaults; nothing automatic is on)
+    backups\       a restore point is written here before ANY change
+    snapshots\     full configuration snapshots you create yourself
+    profiles\      per-game optimization profiles
+    logs\          local diagnostics; logs\crash\ holds crash reports
+    updates\       verified update downloads are staged here
+    history\       benchmark and performance history
+
+Nothing in that folder is ever uploaded anywhere.
+
+The installer runs "PhantomTweeks.exe config --init" once to create the tree
+and write default settings. Reinstalling or upgrading KEEPS your existing
+settings - the step never overwrites a configuration that already exists.
+
+UNINSTALLING
+------------
+Uninstalling removes the program files but deliberately KEEPS
+%LOCALAPPDATA%\PhantomTweeks. Your backups live there, and deleting them
+would leave you unable to undo changes the app made.
+
+If you want to revert everything first, reinstall and use RESTORE EVERYTHING
+before deleting that folder.
