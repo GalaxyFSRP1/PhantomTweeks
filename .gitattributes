@@ -1,0 +1,13 @@
+# PowerShell on Windows (especially Windows PowerShell 5.1) is unreliable with
+# LF-only scripts: here-string terminators and the final line can fail to parse.
+# Force CRLF for scripts Windows runs, and keep LF for everything else.
+* text=auto eol=lf
+*.ps1   text eol=crlf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.iss   text eol=crlf
+*.wxs   text eol=crlf
+*.rtf   -text
+*.ico   binary
+*.png   binary
+*.zip   binary
