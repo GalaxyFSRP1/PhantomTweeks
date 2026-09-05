@@ -1,0 +1,21 @@
+# Vercel only needs website/ + api/ (+ src/ which api/ imports).
+# Keep the desktop-app build machinery out of the deployment.
+build/
+dist/
+tests/
+assets/
+docs/
+admin/
+.venv-build/
+*.spec
+build.ps1
+run.py
+PhantomTweeks.bat
+version_info.txt
+requirements-dev.txt
+__pycache__/
+*.pyc
+
+# Never deploy secrets
+admin/issuer-private.key
+admin/issued-keys.jsonl
