@@ -166,3 +166,92 @@ def test_gui_build_is_windowed():
     assert re.search(r"console\s*=\s*False", spec), (
         "the GUI build must not open a console window"
     )
+
+
+# ------------------------------------------------- WMI cost control
+#
+# `PhantomTweeks.exe hardware` appeared to hang in CI. Cause: every WMI query
+# launches a PowerShell process, nothing was cached, and the per-query timeout
+# was 20s. Several queries per command, several commands per run.
+
+def _monitor(monkeypatch):
+    sys.path.insert(0, str(SRC))
+    from phantom_tweeks.hardware import monitor
+    monkeypatch.setattr(monitor, "IS_WINDOWS", True)
+    monkeypatch.setattr(monitor.shutil, "which", lambda n: "powershell")
+    monitor.reset_wmi_cache()
+    return monitor
+
+
+def test_repeated_wmi_queries_launch_powershell_once(monkeypatch):
+    """Hardware inventory does not change while the app is open."""
+    import types
+    monitor = _monitor(monkeypatch)
+    calls = []
+
+    def fake(cmd, **kw):
+        calls.append(cmd)
+        return types.SimpleNamespace(stdout='{"Name":"CPU"}', returncode=0)
+
+    monkeypatch.setattr(monitor.runproc, "run", fake)
+    for _ in range(5):
+        monitor._wmi_query("root/cimv2", "SELECT Name FROM Win32_Processor",
+                           ["Name"])
+    assert len(calls) == 1, f"{len(calls)} PowerShell launches for one query"
+
+
+def test_wmi_has_a_total_time_budget(monkeypatch):
+    """A slow provider must not compound across many queries."""
+    import time as _time
+    import types
+    monitor = _monitor(monkeypatch)
+    monkeypatch.setattr(monitor, "_WMI_BUDGET_S", 2.0)
+    calls = []
+
+    def slow(cmd, **kw):
+        calls.append(cmd)
+        _time.sleep(0.5)
+        return types.SimpleNamespace(stdout="{}", returncode=0)
+
+    monkeypatch.setattr(monitor.runproc, "run", slow)
+    started = _time.monotonic()
+    for i in range(30):
+        monitor._wmi_query("root/cimv2", f"SELECT C{i} FROM T", ["C"])
+    elapsed = _time.monotonic() - started
+    assert elapsed < 6, f"the budget did not cap WMI cost ({elapsed:.1f}s)"
+    assert len(calls) < 30, "every query ran despite the budget"
+
+
+def test_a_failed_wmi_query_is_not_retried(monkeypatch):
+    """Retrying a broken provider is what turns slow into 'hung'."""
+    import subprocess as sp
+    monitor = _monitor(monkeypatch)
+    calls = []
+
+    def boom(cmd, **kw):
+        calls.append(cmd)
+        raise sp.TimeoutExpired(cmd, 5)
+
+    monkeypatch.setattr(monitor.runproc, "run", boom)
+    for _ in range(10):
+        assert monitor._wmi_query("root/cimv2", "SELECT A FROM B", ["A"]) == []
+    assert len(calls) == 1, "a failing query was retried"
+
+
+def test_wmi_timeout_is_short_enough_to_stay_responsive():
+    sys.path.insert(0, str(SRC))
+    from phantom_tweeks.hardware import monitor
+    assert monitor._WMI_TIMEOUT_S <= 10, (
+        "a single WMI query may stall a command for too long")
+
+
+@pytest.mark.repo_hygiene
+def test_ci_smoke_test_cannot_hang():
+    """A hanging smoke test burns the job timeout and reports nothing."""
+    wf = ROOT / ".github" / "workflows" / "build.yml"
+    if not wf.is_file():
+        pytest.skip("workflow missing from this checkout")
+    text = wf.read_text(encoding="utf-8")
+    assert "Wait-Job" in text and "-Timeout" in text, (
+        "the exe smoke test has no per-command time limit")
+    assert "PHANTOM_WMI_BUDGET" in text, "CI does not cap WMI cost"

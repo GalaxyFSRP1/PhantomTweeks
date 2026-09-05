@@ -5,6 +5,9 @@ returned as None and the UI renders it as "n/a" rather than inventing a value.
 """
 from __future__ import annotations
 
+import os
+import threading
+import time
 import shutil
 import subprocess
 from dataclasses import dataclass, field
@@ -19,27 +22,79 @@ from ..core.platform_info import IS_WINDOWS
 from ..core import runproc
 
 
+# Every WMI query costs a full PowerShell process launch. On a cold machine
+# that is seconds each, and the CLI issues several per command, so an
+# uncached implementation made `PhantomTweeks.exe hardware` appear to hang.
+#
+# Three defences:
+#   1. Results are cached for the life of the process (hardware inventory
+#      does not change while the app is open).
+#   2. A per-query timeout small enough that a stalled WMI provider cannot
+#      dominate a command.
+#   3. A global budget: once total WMI time is spent, later queries return
+#      empty immediately rather than compounding the delay. Missing detail is
+#      reported honestly as "n/a"; a hang is never acceptable.
+_WMI_TIMEOUT_S = float(os.environ.get("PHANTOM_WMI_TIMEOUT", "8"))
+_WMI_BUDGET_S = float(os.environ.get("PHANTOM_WMI_BUDGET", "25"))
+_wmi_cache: dict = {}
+_wmi_spent = 0.0
+_wmi_lock = threading.Lock()
+
+
+def reset_wmi_cache() -> None:
+    """Forget cached inventory and refund the budget. Used by tests and by
+    an explicit user-initiated refresh."""
+    global _wmi_spent
+    with _wmi_lock:
+        _wmi_cache.clear()
+        _wmi_spent = 0.0
+
+
+def wmi_budget_exhausted() -> bool:
+    return _wmi_spent >= _WMI_BUDGET_S
+
+
 def _wmi_query(namespace: str, query: str, props: list[str]) -> list[dict]:
-    """Query WMI via PowerShell. Returns [] when unavailable — never raises."""
+    """Query WMI via PowerShell. Returns [] when unavailable - never raises."""
+    global _wmi_spent
     if not IS_WINDOWS or not shutil.which("powershell"):
         return []
+
+    key = (namespace, query, tuple(props))
+    with _wmi_lock:
+        if key in _wmi_cache:
+            return _wmi_cache[key]
+        if _wmi_spent >= _WMI_BUDGET_S:
+            # Out of budget. Report nothing rather than stall the command.
+            return []
+
     sel = ",".join(props)
     ps = (
         f"Get-CimInstance -Namespace {namespace} -Query \"{query}\" -ErrorAction "
         f"SilentlyContinue | Select-Object {sel} | ConvertTo-Json -Compress -Depth 3"
     )
+    started = time.monotonic()
+    rows: list[dict] = []
     try:
         out = runproc.run(
             ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps],
-            capture_output=True, text=True, timeout=20,
+            capture_output=True, text=True, timeout=_WMI_TIMEOUT_S,
         ).stdout.strip()
-        if not out:
-            return []
-        import json
-        data = json.loads(out)
-        return data if isinstance(data, list) else [data]
+        if out:
+            import json
+            data = json.loads(out)
+            rows = data if isinstance(data, list) else [data]
     except Exception:
-        return []
+        rows = []
+    finally:
+        elapsed = time.monotonic() - started
+        with _wmi_lock:
+            _wmi_spent += elapsed
+            # Cache negative results too: a provider that failed or timed out
+            # once will almost certainly do so again, and retrying is exactly
+            # what turns a slow command into an apparent hang.
+            _wmi_cache[key] = rows
+    return rows
 
 
 @dataclass

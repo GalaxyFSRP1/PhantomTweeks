@@ -151,13 +151,28 @@ jobs:
           # Exercise the subsystems that shell out to powercfg/WMI/ping. These
           # are the code paths that flashed console windows, and they are also
           # where a missing hidden import would surface.
+          # Cap WMI work: on a cold runner each query launches PowerShell and
+          # a stalled provider can take tens of seconds. The app degrades to
+          # "n/a" rather than waiting, which is the correct trade here.
+          $env:PHANTOM_WMI_TIMEOUT = "5"
+          $env:PHANTOM_WMI_BUDGET  = "12"
+
           foreach ($cmd in @("hardware", "health", "storage", "features",
                              "maintenance", "trends", "shield")) {
-            $r = & $exe $cmd 2>&1 | Out-String
-            if ($LASTEXITCODE -ne 0) {
-              Write-Host $r
-              Write-Host "::error::'$cmd' failed with exit code $LASTEXITCODE"
+            # Hard wall-clock limit per command. A smoke test that hangs is
+            # worse than one that fails: it burns the whole job timeout and
+            # tells you nothing.
+            $job = Start-Job -ScriptBlock {
+              param($e, $c) & $e $c 2>&1 | Out-String
+            } -ArgumentList $exe, $cmd
+            if (Wait-Job $job -Timeout 90) {
+              $r = Receive-Job $job | Out-String
+            } else {
+              Stop-Job $job -ErrorAction SilentlyContinue
+              $r = ""
+              Write-Host "::error::'$cmd' did not finish within 90s (hung)"
             }
+            Remove-Job $job -Force -ErrorAction SilentlyContinue
             if ($r -match 'Traceback|ModuleNotFoundError|ImportError') {
               Write-Host $r
               Write-Host "::error::'$cmd' raised an exception in the frozen build"

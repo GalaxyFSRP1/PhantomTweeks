@@ -139,3 +139,27 @@ makes optimizer software untrustworthy.
 never silently disable something that should work. Only an explicit `premium`
 entry in the catalog can lock a feature, and `FREE_FOREVER` names the safety
 features that a test forbids from ever becoming Premium.
+
+## Why WMI queries are cached and budgeted
+
+Every WMI lookup launches a PowerShell process. On a cold machine that is
+seconds per call before the query even runs. `monitor.py` makes five such
+calls, and the CLI issues several commands in a row, so an uncached
+implementation made `PhantomTweeks.exe hardware` look like it had hung —
+which is exactly what happened in CI.
+
+`_wmi_query()` therefore applies three limits:
+
+1. **Process-lifetime cache.** Hardware inventory does not change while the
+   app is open, so each distinct query runs at most once.
+2. **Short per-query timeout** (`PHANTOM_WMI_TIMEOUT`, default 8s). Low
+   enough that one stalled provider cannot dominate a command.
+3. **A global budget** (`PHANTOM_WMI_BUDGET`, default 25s). Once spent,
+   further queries return empty immediately.
+
+Failures are cached too. Retrying a broken provider is precisely what turns a
+slow command into an apparent hang.
+
+The trade-off is deliberate: when the budget is exhausted, some fields report
+`n/a` instead of a value. **Missing detail is honest; a hang is not.** Call
+`reset_wmi_cache()` for a genuine, user-initiated refresh.
