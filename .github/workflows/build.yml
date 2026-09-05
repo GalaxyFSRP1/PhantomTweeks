@@ -1,0 +1,302 @@
+name: Build Windows binaries
+
+# Builds on every push so breakage is caught early, and publishes a GitHub
+# Release whenever you push a version tag like v0.1.2.
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:          # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write             # required to create a Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      # Action versions are pinned deliberately. v5/v6 run on Node 24;
+      # the older v4 releases run on Node 20, which GitHub has deprecated.
+      - name: Check out the repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install Inno Setup (for the .exe installer)
+        run: choco install innosetup --no-progress -y
+        shell: pwsh
+
+      - name: Install WiX Toolset (for the .msi package)
+        shell: pwsh
+        # The .msi is an optional extra for managed deployment. WiX is a
+        # third-party tool whose licensing changed under us once already
+        # (v7 now blocks all commands pending EULA acceptance), so a failure
+        # here must never block shipping the .exe installer.
+        continue-on-error: true
+        run: |
+          # Pin to 5.0.2 deliberately. WiX v6 introduced the Open Source
+          # Maintenance Fee and v7 ENFORCES it: every command fails with
+          # WIX7015 until a EULA is accepted. v5.0.2 is the last release
+          # without that requirement and compiles our v4-schema .wxs fine.
+          # Do not change this to a floating version.
+          dotnet tool install --global wix --version 5.0.2
+          wix --version
+          # The wizard UI is a separate extension; without it "wix build
+          # -ext WixToolset.UI.wixext" fails with WIX0144. Match the
+          # extension version to the toolset version.
+          wix extension add -g WixToolset.UI.wixext/5.0.2
+          wix extension list -g
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::warning::WiX setup failed; the .msi will be skipped."
+            exit 0
+          }
+
+      - name: Report whether Tk can render on this runner
+        shell: pwsh
+        # The hosted Windows Python has repeatedly shipped without its Tcl
+        # data files ("Can't find a usable init.tcl"). That breaks the GUI
+        # rendering tests through no fault of the product, so they skip
+        # themselves. Surface it loudly rather than letting it pass unnoticed:
+        # if Tk is unusable here, the packaged app's GUI is NOT covered by
+        # this run and must be smoke-tested another way.
+        continue-on-error: true
+        run: |
+          # No here-string: its terminator must sit at column 0, which YAML
+          # indentation makes fragile. Pass the probe with python -c instead.
+          $code = 'import tkinter; from tkinter import ttk; ' +
+                  'r=tkinter.Tk(); ttk.Frame(r); r.update_idletasks(); ' +
+                  'r.destroy(); print("TK_OK")'
+          $out = & python -c $code 2>&1 | Out-String
+          if ($out -match "TK_OK") {
+            Write-Host "Tk renders on this runner; GUI tests will run."
+          } else {
+            Write-Host "::warning::Tk is unusable on this runner, so the GUI"
+            Write-Host "::warning::rendering tests will skip. This is a runner"
+            Write-Host "::warning::environment problem, not an app defect."
+            Write-Host $out
+          }
+
+      - name: Warn if dotfiles are missing from the repository
+        shell: pwsh
+        run: |
+          # The GitHub web uploader silently drops files beginning with a dot.
+          # .gitignore missing is a real risk: admin/issuer-private.key could
+          # then be committed by accident.
+          $missing = @()
+          foreach ($f in @('.gitignore', '.vercelignore')) {
+            if (-not (Test-Path $f)) { $missing += $f }
+          }
+          if ($missing.Count -gt 0) {
+            $list = $missing -join ', '
+            Write-Host "::warning::Missing from the repo: $list. Dotfiles are dropped by the GitHub web uploader. Add them with: git add -f .gitignore .vercelignore"
+          } else {
+            Write-Host "Dotfiles present."
+          }
+          # A committed private key must stop the build outright.
+          if (Test-Path 'admin/issuer-private.key') {
+            throw "admin/issuer-private.key is committed to the repository. Remove it, rotate the key, and add .gitignore."
+          }
+
+      - name: Show version being built
+        id: ver
+        shell: pwsh
+        run: |
+          $v = (Select-String -Path src/phantom_tweeks/branding.py `
+                -Pattern 'VERSION = "([^"]+)"').Matches[0].Groups[1].Value
+          "version=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Building Phantom Tweeks $v"
+
+      # build.ps1 creates its own venv, installs deps, runs the tests and
+      # refuses to build from a failing tree.
+      - name: Run build.ps1
+        shell: pwsh
+        # Bounded so a stuck PyInstaller or test cannot consume the whole job
+        # and leave no useful log behind.
+        timeout-minutes: 20
+        run: .\build.ps1
+
+      - name: Confirm the EXE actually starts
+        shell: pwsh
+        # Never fatal: a smoke test that cannot run must not discard a good
+        # build. Real problems are reported as ::error:: annotations.
+        continue-on-error: true
+        # A hard ceiling on the whole step. Even if every guard below fails,
+        # the job cannot be held open by this step.
+        timeout-minutes: 8
+        run: |
+          $ErrorActionPreference = "Continue"
+
+          # Resolve to an ABSOLUTE path. A relative path silently fails to
+          # resolve inside a background job, which is what made an earlier
+          # version of this step appear to hang forever.
+          $exe = Join-Path $PWD "dist\PhantomTweeks.exe"
+          if (-not (Test-Path -LiteralPath $exe)) {
+            Write-Host "::error::dist\PhantomTweeks.exe is missing"
+            exit 1
+          }
+          Write-Host "Testing: $exe"
+
+          # Keep WMI cheap; the app degrades to "n/a" rather than waiting.
+          $env:PHANTOM_WMI_TIMEOUT = "5"
+          $env:PHANTOM_WMI_BUDGET  = "10"
+          # Isolate the smoke test from any real user profile.
+          $env:PHANTOM_TWEEKS_HOME = Join-Path $env:RUNNER_TEMP "pt-smoke"
+
+          function Invoke-Exe {
+            param([string]$Argument, [int]$TimeoutSec = 60)
+            # Start-Process with redirected output gives a real, killable
+            # handle. Start-Job does not reliably inherit the working
+            # directory or environment, and Wait-Job can outlive its child.
+            $o = New-TemporaryFile
+            $e = New-TemporaryFile
+            $p = Start-Process -FilePath $exe -ArgumentList $Argument `
+                   -NoNewWindow -PassThru `
+                   -RedirectStandardOutput $o -RedirectStandardError $e
+            if (-not $p.WaitForExit($TimeoutSec * 1000)) {
+              # Kill the whole TREE. A frozen build spawns PowerShell for WMI
+              # queries; killing only the parent leaves those children alive
+              # and they can hold the runner open after this step "finishes".
+              & taskkill /PID $p.Id /T /F 2>&1 | Out-Null
+              try { $p.Kill($true) } catch { }
+              Start-Sleep -Milliseconds 300
+              Remove-Item $o, $e -Force -ErrorAction SilentlyContinue
+              return [pscustomobject]@{ Code = -1; Text = ""; TimedOut = $true }
+            }
+            $text = (Get-Content $o -Raw -EA SilentlyContinue) +
+                    (Get-Content $e -Raw -EA SilentlyContinue)
+            Remove-Item $o, $e -Force -ErrorAction SilentlyContinue
+            return [pscustomobject]@{ Code = $p.ExitCode
+                                      Text = [string]$text
+                                      TimedOut = $false }
+          }
+
+          $r = Invoke-Exe "version" 60
+          Write-Host $r.Text
+          if ($r.TimedOut) {
+            Write-Host "::error::The EXE did not respond to 'version' in 60s"
+            exit 1
+          }
+          if ($r.Code -ne 0) { Write-Host "::error::'version' exited $($r.Code)" }
+          if ($r.Text -notmatch 'Phantom Tweeks') {
+            Write-Host "::error::Unexpected output from the EXE"
+          }
+          if ($r.Text -match 'no known parent package') {
+            Write-Host "::error::The frozen-import bug is back"
+          }
+
+          # Exercise the subsystems that shell out to powercfg, WMI and ping.
+          foreach ($cmd in @("hardware", "health", "storage", "features",
+                             "maintenance", "trends", "shield", "doctor")) {
+            $t0 = Get-Date
+            $r = Invoke-Exe $cmd 60
+            $secs = [int]((Get-Date) - $t0).TotalSeconds
+            if ($r.TimedOut) {
+              Write-Host "::error::'$cmd' hung (killed after 60s)"
+              continue
+            }
+            if ($r.Text -match 'Traceback|ModuleNotFoundError|ImportError') {
+              Write-Host $r.Text
+              Write-Host "::error::'$cmd' raised an exception in the frozen build"
+            }
+            Write-Host ("  {0,-12} ok in {1}s" -f $cmd, $secs)
+          }
+          Write-Host "EXE starts correctly and all subsystems respond."
+
+      - name: Confirm the MSI was produced and is a valid installer database
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem dist -Filter *.msi -ErrorAction SilentlyContinue |
+                 Select-Object -First 1
+          if (-not $msi) {
+            # The .exe installer is the artifact end users need; the .msi is
+            # only for managed deployment. Do not fail the release for it.
+            Write-Host "::warning::No .msi was produced; continuing without it."
+            exit 0
+          }
+          # An MSI is an OLE compound document; check the magic bytes rather
+          # than trusting the extension.
+          $bytes = [System.IO.File]::ReadAllBytes($msi.FullName)[0..7]
+          $magic = ($bytes | ForEach-Object { $_.ToString("X2") }) -join ''
+          if ($magic -ne 'D0CF11E0A1B11AE1') {
+            # A corrupt .msi IS a hard failure: shipping one is worse than
+            # shipping none.
+            throw "dist\$($msi.Name) is not a valid Windows Installer database (magic=$magic)."
+          }
+          Write-Host "$($msi.Name) is a valid MSI ($([math]::Round($msi.Length/1MB,1)) MB)."
+
+      - name: Confirm the portable build is really portable
+        shell: pwsh
+        run: |
+          $exe = ".\dist\PhantomTweeks-Portable.exe"
+          if (-not (Test-Path $exe)) { throw "portable EXE missing" }
+          & $exe version | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "portable EXE failed to start" }
+          Write-Host "Portable EXE starts correctly."
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: PhantomTweeks-${{ steps.ver.outputs.version }}
+          path: |
+            dist/*.exe
+            dist/*.msi
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      # ---- Release: only for tags such as v0.1.2 ----
+      - name: Explain how to publish a release
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        shell: pwsh
+        run: |
+          Write-Host "::notice::Build finished. No Release was created because"
+          Write-Host "::notice::this run was triggered by a branch push, not a tag."
+          Write-Host "::notice::To publish a Release, push a version tag:"
+          Write-Host "::notice::  git tag v${{ steps.ver.outputs.version }}"
+          Write-Host "::notice::  git push origin v${{ steps.ver.outputs.version }}"
+          Write-Host "::notice::The binaries from this run are in the Artifacts section above."
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Phantom Tweeks ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ startsWith(steps.ver.outputs.version, '0.') }}
+          generate_release_notes: true
+          # The .msi glob matches nothing when WiX is unavailable; that must
+          # not abort publishing the binaries people actually need.
+          fail_on_unmatched_files: false
+          files: |
+            dist/PhantomTweeks.exe
+            dist/PhantomTweeks-Portable.exe
+            dist/PhantomTweeks-Setup.exe
+            dist/*.msi
+            dist/SHA256SUMS.txt
+          body: |
+            ## Phantom Tweeks ${{ github.ref_name }}
+
+            | File | What it is |
+            | --- | --- |
+            | `PhantomTweeks-Setup.exe` | Installer — recommended for most people |
+            | `PhantomTweeks-<version>.msi` | MSI package for managed/corporate deployment |
+            | `PhantomTweeks.exe` | Standalone application |
+            | `PhantomTweeks-Portable.exe` | Portable; keeps its data next to the EXE |
+            | `SHA256SUMS.txt` | Checksums — verify before running |
+
+            Verify your download in PowerShell:
+
+            ```powershell
+            Get-FileHash .\PhantomTweeks-Setup.exe -Algorithm SHA256
+            ```
+
+            > These binaries are **not code-signed** yet, so Windows SmartScreen
+            > will warn on first run. Check the SHA-256 above before allowing it.
