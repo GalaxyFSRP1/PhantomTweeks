@@ -1,0 +1,43 @@
+PHANTOM TWEEKS — END USER LICENSE AGREEMENT
+
+Version 0.2.1
+
+1. LICENSE
+   You are granted a personal, non-exclusive, non-transferable license to
+   install and use Phantom Tweeks on devices you own or administer.
+
+2. NO WARRANTY
+   Phantom Tweeks is provided "as is", without warranty of any kind, express
+   or implied, including but not limited to warranties of merchantability,
+   fitness for a particular purpose and non-infringement.
+
+3. LIMITATION OF LIABILITY
+   To the maximum extent permitted by law, the authors shall not be liable for
+   any damages arising from the use of this software. Phantom Tweeks is
+   designed to be conservative and reversible, creates a backup before every
+   change it makes, and provides a one-click restore. You remain responsible
+   for maintaining your own system backups.
+
+4. WHAT THE SOFTWARE DOES NOT DO
+   Phantom Tweeks does not disable security software, does not modify game
+   files or anti-cheat software, does not terminate your applications, and
+   does not transmit personal information.
+
+5. NO PERFORMANCE GUARANTEE
+   Performance results depend on your hardware, drivers, game and settings.
+   Phantom Tweeks reports measured results honestly, including when no
+   measurable improvement occurred. No specific FPS or latency improvement is
+   promised, and no reduction in network ping is promised.
+
+6. ANTI-CHEAT
+   Phantom Tweeks only changes documented Windows settings. It does not inject
+   into, hook, or modify any game process or anti-cheat component. Use with
+   competitive titles is nonetheless at your own discretion.
+
+7. TERMINATION
+   This license terminates if you breach its terms. You may terminate it at
+   any time by uninstalling the software. Use RESTORE EVERYTHING before
+   uninstalling if you wish to revert all changes.
+
+8. RESERVATION OF RIGHTS
+   All rights not expressly granted are reserved.
