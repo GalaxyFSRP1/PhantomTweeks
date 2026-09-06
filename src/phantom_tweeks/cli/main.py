@@ -985,6 +985,29 @@ def cmd_driverupdate(app: PhantomApp, args) -> int:
     return 0
 
 
+def cmd_saved(app: PhantomApp, args) -> int:
+    """Show or re-apply the tweaks you have selected."""
+    from ..engine import tweakstate, nettweaks, perftweaks
+
+    if args.clear:
+        n = tweakstate.clear()
+        print(f"Cleared {n} saved selection(s).")
+        return 0
+
+    if args.reapply:
+        _h("RE-APPLYING SAVED TWEAKS")
+        for label, mod in (("network", nettweaks), ("latency", perftweaks)):
+            result = tweakstate.reapply_all(mod.set_tweak)
+            for m in result["applied"]:
+                print(f"  ok   {m}")
+            for m in result["failed"]:
+                print(f"  fail {m}")
+        return 0
+
+    print(tweakstate.summary())
+    return 0
+
+
 def cmd_premium(app: PhantomApp, args) -> int:
     c = premium.page_content()
     _h(c["title"])
@@ -1193,6 +1216,13 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("driver-update",
                    help="check GPU drivers against the vendor's published version"
                    ).set_defaults(fn=cmd_driverupdate)
+
+    s = sub.add_parser("saved", help="tweaks you have selected")
+    s.add_argument("--reapply", action="store_true",
+                   help="re-apply everything you had turned on")
+    s.add_argument("--clear", action="store_true",
+                   help="forget all saved selections")
+    s.set_defaults(fn=cmd_saved)
 
     sub.add_parser("cpu", help="CPU detail and Intel/AMD specific guidance"
                    ).set_defaults(fn=cmd_cpu)

@@ -5,6 +5,41 @@ All notable changes to Phantom Tweeks. Versions follow
 releases are published as pre-releases: the software is usable but the
 interfaces may still change.
 
+## 0.2.8 — 2026-09-06
+
+### Fixed
+- **Your tweak selections are now saved.** Nineteen toggles could not read
+  their state back from Windows - a powercfg sub-setting, a scheduled task, an
+  adapter property the driver does not expose. They reported OFF
+  unconditionally, so every switch you flipped appeared off again on the next
+  launch, and there was no way to tell "off" from "cannot tell".
+- Tweaks that cannot be read now declare that explicitly, and the app records
+  what you chose. Verified end to end across two separate processes: apply,
+  quit, relaunch, still on.
+- **Where Windows CAN read a setting, the machine still wins.** The saved
+  record never overrides reality - it only fills the gap. If the two disagree,
+  the app says "changed outside Phantom Tweeks", which is what you see after
+  Windows Update or a driver reinstall reverts something.
+- **Re-apply my saved tweaks** button for exactly that case.
+
+### Added
+- **Latency tweaks: 54 to 64** - now **10 CPU** and **13 NVIDIA**.
+  New CPU: aggressive boost policy, faster clock ramp-up, slower ramp-down,
+  unparked cores, timer resolution and timer distribution. New NVIDIA: G-Sync
+  fullscreen, Ansel/overlay hooks, Dynamic Boost and 3D PowerMizer level.
+- **Network tweaks: 48 to 54.** Wi-Fi transmit power, MIMO power
+  saving, wake-on-LAN packet matching, IPv4 preference, hosts-file resolution
+  priority and SMB bandwidth throttling.
+- `run.py saved`, `--reapply`, `--clear`.
+
+### Honest notes
+- The IPv4 preference tweak changes *preference only*. It does not disable
+  IPv6, which Microsoft explicitly advises against and which breaks parts of
+  Windows.
+- SMB bandwidth throttling says plainly that it has no effect on game traffic.
+- The high-resolution timer tweak says it is far narrower than older guides
+  claim, because since Windows 10 2004 the request applies per process.
+
 ## 0.2.7 — 2026-09-06
 
 ### Added

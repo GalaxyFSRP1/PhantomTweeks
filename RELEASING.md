@@ -34,12 +34,12 @@ hit — CI now fails loudly instead of shipping it.
 ```bash
 # 1. Set the version in src/phantom_tweeks/branding.py (and the other spots)
 # 2. Commit
-git add -A && git commit -m "Release 0.2.7"
+git add -A && git commit -m "Release 0.2.8"
 
 # 3. Tag and push
-git tag v0.2.7
+git tag v0.2.8
 git push origin main
-git push origin v0.2.7
+git push origin v0.2.8
 ```
 
 Watch it under the **Actions** tab. When it finishes, the release appears under
@@ -53,7 +53,7 @@ Versions starting `0.` are automatically marked **pre-release**.
 ## Part 2 — Making downloads work on a private repo
 
 This is the part that trips people up. A link like
-`https://github.com/GalaxyFSRP1/PhantomTweeks/releases/download/v0.2.7/PhantomTweeks-Setup.exe`
+`https://github.com/GalaxyFSRP1/PhantomTweeks/releases/download/v0.2.8/PhantomTweeks-Setup.exe`
 returns **404 for everyone except you** while the repo is private. Your visitors
 would see a broken download.
 
@@ -131,7 +131,7 @@ and the release notes say so honestly.
 | File | Use it for |
 | --- | --- |
 | `PhantomTweeks-Setup.exe` | Normal users. Friendly wizard, made by Inno Setup. |
-| `PhantomTweeks-0.2.7.msi` | Managed deployment — Group Policy, Intune, SCCM, or `msiexec`. |
+| `PhantomTweeks-0.2.8.msi` | Managed deployment — Group Policy, Intune, SCCM, or `msiexec`. |
 
 An `.msi` is a real Windows Installer database, which is what corporate
 deployment tools require; they cannot script an arbitrary `.exe` reliably.
@@ -168,10 +168,10 @@ the file extension.
 ### Installing from the command line
 
 ```powershell
-msiexec /i PhantomTweeks-0.2.7.msi                  # normal install
-msiexec /i PhantomTweeks-0.2.7.msi /quiet /norestart  # silent
-msiexec /i PhantomTweeks-0.2.7.msi INSTALLDESKTOPSHORTCUT=0   # no desktop icon
-msiexec /x PhantomTweeks-0.2.7.msi                  # uninstall
+msiexec /i PhantomTweeks-0.2.8.msi                  # normal install
+msiexec /i PhantomTweeks-0.2.8.msi /quiet /norestart  # silent
+msiexec /i PhantomTweeks-0.2.8.msi INSTALLDESKTOPSHORTCUT=0   # no desktop icon
+msiexec /x PhantomTweeks-0.2.8.msi                  # uninstall
 ```
 
 ### What it installs
@@ -198,23 +198,23 @@ when you push a **version tag**. A normal `git push` gives you build artifacts
 Release with permanent download links.
 
 ```powershell
-git tag v0.2.7
-git push origin v0.2.7
+git tag v0.2.8
+git push origin v0.2.8
 ```
 
 Or in one step with the helper:
 
 ```powershell
-.\push-to-github.ps1 -Tag v0.2.7
+.\push-to-github.ps1 -Tag v0.2.8
 ```
 
 If the tag already exists on the remote from an earlier attempt, replace it:
 
 ```powershell
-git tag -d v0.2.7
-git push origin :refs/tags/v0.2.7
-git tag v0.2.7
-git push origin v0.2.7
+git tag -d v0.2.8
+git push origin :refs/tags/v0.2.8
+git tag v0.2.8
+git push origin v0.2.8
 ```
 
 Because the version is `0.x`, the workflow marks the Release as a

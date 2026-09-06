@@ -1,6 +1,6 @@
 # Phantom Tweeks — Privacy Policy
 
-**Last updated:** 5 September 2026 · **Applies to:** Phantom Tweeks 0.2.7
+**Last updated:** 5 September 2026 · **Applies to:** Phantom Tweeks 0.2.8
 
 ## Summary
 

@@ -1,6 +1,6 @@
 PHANTOM TWEEKS — END USER LICENSE AGREEMENT
 
-Version 0.2.7
+Version 0.2.8
 
 1. LICENSE
    You are granted a personal, non-exclusive, non-transferable license to

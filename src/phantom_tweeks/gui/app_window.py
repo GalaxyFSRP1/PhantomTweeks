@@ -1925,9 +1925,20 @@ class PhantomWindow(tk.Tk):
 
     def _refresh_perftweaks(self) -> None:
         def done(state):
-            for tid, var in self._pt_vars.items():
-                var.set(bool(state.get(tid)))
-        self._run_async(perftweaks.states, done, "Reading settings...")
+            remembered = 0
+            for tid, (is_on, label) in state.items():
+                if tid in self._pt_vars:
+                    self._pt_vars[tid].set(bool(is_on))
+                if tid in getattr(self, "_nv_vars", {}):
+                    self._nv_vars[tid].set(bool(is_on))
+                if "remembered" in label:
+                    remembered += 1
+            if remembered:
+                self._write(self.pt_log,
+                            f"{remembered} setting(s) shown from your saved "
+                            "selections - Windows does not expose those for "
+                            "reading.")
+        self._run_async(perftweaks.labelled_states, done, "Reading settings...")
 
     def _pt_toggle(self, tweak_id: str) -> None:
         want = self._pt_vars[tweak_id].get()
@@ -2228,6 +2239,8 @@ class PhantomWindow(tk.Tk):
                    command=self._net_disable_all).pack(side="left", padx=6)
         ttk.Button(bar, text="Refresh state", style="Chip.TButton",
                    command=self._refresh_nettweaks).pack(side="left")
+        ttk.Button(bar, text="Re-apply my saved tweaks", style="Chip.TButton",
+                   command=self._reapply_net).pack(side="left", padx=6)
 
         scroll = ScrollFrame(page)
         scroll.pack(fill="both", expand=True)
@@ -2266,9 +2279,40 @@ class PhantomWindow(tk.Tk):
 
     def _refresh_nettweaks(self) -> None:
         def done(state):
-            for tid, var in self._net_vars.items():
-                var.set(bool(state.get(tid)))
-        self._run_async(nettweaks.states, done, "Reading network settings...")
+            remembered = 0
+            for tid, (is_on, label) in state.items():
+                if tid in self._net_vars:
+                    self._net_vars[tid].set(bool(is_on))
+                if "remembered" in label:
+                    remembered += 1
+            if remembered:
+                self._write(self.net_log,
+                            f"{remembered} setting(s) shown from your saved "
+                            "selections. Windows does not expose those for "
+                            "reading, so Phantom Tweeks remembers what you "
+                            "chose.")
+        self._run_async(nettweaks.labelled_states, done,
+                        "Reading network settings...")
+
+    def _reapply_net(self) -> None:
+        """Re-apply saved tweaks after Windows Update reverted them."""
+        from ..engine import tweakstate
+
+        def work():
+            result = tweakstate.reapply_all(nettweaks.set_tweak)
+            lines = ["RE-APPLIED SAVED TWEAKS", ""]
+            lines += [f"  ok   {m}" for m in result["applied"]]
+            lines += [f"  fail {m}" for m in result["failed"]]
+            if not result["applied"] and not result["failed"]:
+                lines.append("  Nothing saved yet - turn some tweaks on first.")
+            return "\n".join(lines)
+
+        def done(text):
+            self._write(self.net_log, text)
+            self._refresh_nettweaks()
+            Toast(self, "Re-applied", "success")
+
+        self._run_async(work, done, "Re-applying...")
 
     def _net_toggle(self, tweak_id: str) -> None:
         want = self._net_vars[tweak_id].get()

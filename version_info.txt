@@ -10,12 +10,12 @@ VSVersionInfo(
         '040904B0',
         [StringStruct('CompanyName', 'Phantom Tweeks'),
          StringStruct('FileDescription', 'Phantom Tweeks — Windows performance optimization suite'),
-         StringStruct('FileVersion', '0.2.7.0'),
+         StringStruct('FileVersion', '0.2.8.0'),
          StringStruct('InternalName', 'PhantomTweeks'),
          StringStruct('LegalCopyright', 'Copyright (c) 2026 Phantom Tweeks'),
          StringStruct('OriginalFilename', 'PhantomTweeks.exe'),
          StringStruct('ProductName', 'Phantom Tweeks'),
-         StringStruct('ProductVersion', '0.2.7.0')])
+         StringStruct('ProductVersion', '0.2.8.0')])
     ]),
     VarFileInfo([VarStruct('Translation', [1033, 1200])])
   ]

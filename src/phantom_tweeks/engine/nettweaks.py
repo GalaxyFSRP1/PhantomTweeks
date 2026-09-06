@@ -37,6 +37,8 @@ from . import winsettings as ws
 
 TCPIP_IFACES = r"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces"
 TCPIP_PARAMS = r"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
+SERVICE_PROVIDER = (r"SYSTEM\CurrentControlSet\Services\Tcpip"
+                    r"\ServiceProvider")
 MMCSS_SYSTEM = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"
 
 # Effect wording used in the UI. Deliberately mechanical, never "lower ping".
@@ -275,7 +277,7 @@ TWEAKS: list[NetTweak] = [
         "moved and your PC is still resolving the old address.",
         requires_admin=False,
         apply=lambda on: _flush_dns(),
-        is_on=lambda: False),
+        is_on=None),
 
     NetTweak(
         "delivery_optimization", "Stop seeding Windows updates",
@@ -440,7 +442,7 @@ TWEAKS: list[NetTweak] = [
         "need it.",
         warning="Can break discovery of very old network shares and printers.",
         apply=lambda on: _netbios(on),
-        is_on=lambda: False),
+        is_on=None),
 
     NetTweak(
         "llmnr_off", "Disable LLMNR",
@@ -515,7 +517,7 @@ TWEAKS: list[NetTweak] = [
         "This is a privacy and reliability improvement, not a speed one - it "
         "adds a small amount of handshake overhead.",
         apply=lambda on: _doh(on),
-        is_on=lambda: False),
+        is_on=None),
 
     NetTweak(
         "wifi_roaming", "Reduce Wi-Fi roaming aggressiveness",
@@ -573,7 +575,7 @@ TWEAKS: list[NetTweak] = [
         requires_admin=False,
         apply=lambda on: _steam_setting("DownloadThrottleWhileGaming",
                                         "1" if on else "0"),
-        is_on=lambda: False),
+        is_on=None),
 
     NetTweak(
         "windows_update_metered", "Mark your connection as metered",
@@ -585,7 +587,7 @@ TWEAKS: list[NetTweak] = [
         warning="You will stop receiving Windows updates automatically. "
                 "Remember to unset this periodically.",
         apply=lambda on: _metered(on),
-        is_on=lambda: False),
+        is_on=None),
 
     NetTweak(
         "tcp_prr", "Enable Proportional Rate Reduction",
@@ -611,7 +613,7 @@ TWEAKS: list[NetTweak] = [
         apply=lambda on: _netsh("int", "tcp", "set", "supplemental",
                                 "template=internet",
                                 f"minrto={'20' if on else '300'}"),
-        is_on=lambda: False),
+        is_on=None),
 
     NetTweak(
         "wifi_power_max", "Set Wi-Fi to maximum performance",
@@ -623,7 +625,7 @@ TWEAKS: list[NetTweak] = [
         apply=lambda on: _powercfg_sub_net(
             "19cbb8fa-5279-450e-9fac-8a3d5fedd0c1",
             "12bbebe6-58d6-4636-95bb-3217ef867c1a", 0 if on else 2),
-        is_on=lambda: False),
+        is_on=None),
 
     NetTweak(
         "disable_wifi_scan", "Reduce background Wi-Fi scanning",
@@ -717,6 +719,86 @@ TWEAKS: list[NetTweak] = [
             note="TCP task offload")],
         is_on=lambda: ws.read_registry("HKLM", TCPIP_PARAMS,
                                        "DisableTaskOffload") == 1),
+
+    NetTweak(
+        "wifi_txpower_max", "Maximum Wi-Fi transmit power",
+        "Stops the radio reducing signal strength to save power",
+        "A weaker transmit signal means more retries, and every retry is "
+        "latency. Setting maximum power keeps the link solid at the cost of "
+        "battery.",
+        warning="Reduces laptop battery life.",
+        apply=lambda on: _adapter_property("TransmitPower",
+                                           "100" if on else "50"),
+        is_on=lambda: _adapter_property_is("TransmitPower", "100")),
+
+    NetTweak(
+        "wifi_mimo_power", "Disable Wi-Fi MIMO power saving",
+        EFFECT_WAKE,
+        "MIMO power save shuts down spatial streams when idle and brings "
+        "them back on demand. The wake costs latency, and on some adapters "
+        "it causes throughput to collapse intermittently.",
+        apply=lambda on: _adapter_property("MIMOPowerSaveMode",
+                                           "3" if on else "0"),
+        is_on=lambda: _adapter_property_is("MIMOPowerSaveMode", "3")),
+
+    NetTweak(
+        "disable_wake_magic", "Disable wake-on-LAN packet matching",
+        "Stops the adapter inspecting every packet for wake patterns",
+        "Wake-on-LAN keeps part of the NIC awake examining traffic. If you "
+        "never wake this PC remotely it is pure overhead, and it prevents "
+        "the machine sleeping properly.",
+        apply=lambda on: _adapter_property("*WakeOnMagicPacket",
+                                           "0" if on else "1"),
+        is_on=lambda: _adapter_property_is("*WakeOnMagicPacket", "0")),
+
+    NetTweak(
+        "ipv4_precedence", "Prefer IPv4 over IPv6",
+        "Uses IPv4 first when both are available",
+        "Some games and older middleboxes handle IPv6 poorly, and a stalled "
+        "IPv6 attempt costs a timeout before IPv4 is tried. This changes "
+        "preference only - it does NOT disable IPv6, which Microsoft "
+        "explicitly advises against and which breaks parts of Windows.",
+        apply=lambda on: [ws.write_registry(
+            "HKLM",
+            r"SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters",
+            "DisabledComponents", 0x20 if on else 0,
+            note="IPv4 preference over IPv6")],
+        is_on=lambda: ws.read_registry(
+            "HKLM", r"SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters",
+            "DisabledComponents") == 0x20),
+
+    NetTweak(
+        "host_resolution_priority", "Prioritise the local hosts file",
+        EFFECT_LOOKUP,
+        "Reorders name-resolution providers so the local cache and hosts "
+        "file are consulted before network lookups. Saves a round trip on "
+        "names already known.",
+        apply=lambda on: [
+            ws.write_registry("HKLM", SERVICE_PROVIDER, "LocalPriority",
+                              4 if on else 499, note="Local resolution priority"),
+            ws.write_registry("HKLM", SERVICE_PROVIDER, "HostsPriority",
+                              5 if on else 500, note="Hosts file priority"),
+            ws.write_registry("HKLM", SERVICE_PROVIDER, "DnsPriority",
+                              6 if on else 2000, note="DNS priority")],
+        is_on=lambda: ws.read_registry("HKLM", SERVICE_PROVIDER,
+                                       "LocalPriority") == 4),
+
+    NetTweak(
+        "disable_bandwidth_throttling", "Remove SMB bandwidth throttling",
+        EFFECT_UPLINK,
+        "Windows throttles its own file-sharing traffic, which can interfere "
+        "with local network transfers. Only relevant if you copy files "
+        "between machines while gaming - it has no effect on game traffic "
+        "itself, and saying otherwise would be dishonest.",
+        apply=lambda on: [ws.write_registry(
+            "HKLM",
+            r"SYSTEM\CurrentControlSet\Services\LanmanWorkstation"
+            r"\Parameters", "DisableBandwidthThrottling", 1 if on else 0,
+            note="SMB bandwidth throttling")],
+        is_on=lambda: ws.read_registry(
+            "HKLM",
+            r"SYSTEM\CurrentControlSet\Services\LanmanWorkstation"
+            r"\Parameters", "DisableBandwidthThrottling") == 1),
 ]
 
 
@@ -811,13 +893,37 @@ BY_ID = {t.id: t for t in TWEAKS}
 
 
 def states() -> dict:
-    """Current on/off state of every tweak. Never raises."""
+    """Current on/off state of every tweak. Never raises.
+
+    Where Windows can read a setting back, the machine is authoritative.
+    Where it cannot, the saved selection is used so a switch you flipped
+    does not silently appear off again after a restart.
+    """
+    from . import tweakstate
+    out = {}
+    for t in TWEAKS:
+        detected = None
+        try:
+            detected = bool(t.is_on()) if t.is_on else None
+        except Exception:
+            detected = None
+        is_on, _label = tweakstate.resolve(t.id, detected,
+                                           detectable=detected is not None)
+        out[t.id] = is_on
+    return out
+
+
+def labelled_states() -> dict:
+    """Like states(), but with a human label explaining where it came from."""
+    from . import tweakstate
     out = {}
     for t in TWEAKS:
         try:
-            out[t.id] = bool(t.is_on()) if t.is_on else False
+            detected = bool(t.is_on()) if t.is_on else None
         except Exception:
-            out[t.id] = False
+            detected = None
+        out[t.id] = tweakstate.resolve(t.id, detected,
+                                       detectable=detected is not None)
     return out
 
 
@@ -835,6 +941,8 @@ def set_tweak(tweak_id: str, enabled: bool) -> tuple[bool, str, list]:
         changes = tweak.apply(enabled) or []
     except Exception as exc:
         return False, f"{tweak.name} failed: {exc}", []
+    from . import tweakstate
+    tweakstate.remember(tweak_id, enabled, "Network")
     verb = "enabled" if enabled else "reverted"
     return True, f"{tweak.name} {verb}.", changes
 

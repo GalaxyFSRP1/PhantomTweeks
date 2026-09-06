@@ -538,7 +538,7 @@ TWEAKS: list = [
         apply=lambda on: _powercfg_sub(
             "54533251-82be-4824-96c1-47b60b740d00",
             "0cc5b647-c1df-4637-891a-dec35c318583", 100 if on else 0),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "usb_power_off", "Stop powering down USB hubs", "Power",
@@ -549,7 +549,7 @@ TWEAKS: list = [
         apply=lambda on: _powercfg_sub(
             "2a737441-1930-4402-8d77-b2bebba308a3",
             "48e6b7a6-50f5-4782-a5d4-53bb8f07e226", 0 if on else 1),
-        is_on=lambda: False),
+        is_on=None),
 
     # --------------------------------------------------------- Background
     PerfTweak(
@@ -562,7 +562,7 @@ TWEAKS: list = [
         apply=lambda on: _schtask(
             r"\Microsoft\Windows\Application Experience\Microsoft "
             r"Compatibility Appraiser", on),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "background_apps", "Stop Store apps running in the background",
@@ -599,7 +599,7 @@ TWEAKS: list = [
         "it, is better than either and works automatically.",
         apply=lambda on: _nvidia_profile("OGL_CPL_PREFERRED_PSTATE",
                                          "1" if on else "0"),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "nv_power_max", "NVIDIA prefer maximum performance", "NVIDIA",
@@ -610,7 +610,7 @@ TWEAKS: list = [
         warning="Raises idle power draw and temperature. A poor default for "
                 "a laptop on battery.",
         apply=lambda on: _nvidia_power_mode(on),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "nv_shader_cache", "Enlarge the NVIDIA shader cache", "NVIDIA",
@@ -630,7 +630,7 @@ TWEAKS: list = [
         "is a privacy improvement with a negligible performance effect, and "
         "it should be described that way rather than sold as extra frames.",
         apply=lambda on: _nvidia_telemetry(on),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "nv_gsync_windowed", "Allow G-Sync in windowed mode", "NVIDIA",
@@ -653,7 +653,7 @@ TWEAKS: list = [
         "core. Distributing them measurably reduces DPC latency spikes on "
         "high-core-count systems.",
         apply=lambda on: _bcdedit("disabledynamictick", "yes" if on else "no"),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "gpu_priority_registry", "Raise the GPU scheduling priority", "System",
@@ -692,7 +692,7 @@ TWEAKS: list = [
         "as a side effect - so this is a disk-space decision.",
         warning="You lose sleep-to-disk and Fast Startup.",
         apply=lambda on: _powercfg_raw("/hibernate", "off" if on else "on"),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "game_priority_registry", "Give games a higher process priority",
@@ -720,7 +720,7 @@ TWEAKS: list = [
         apply=lambda on: _powercfg_sub(
             "54533251-82be-4824-96c1-47b60b740d00",
             "5d76a2ca-e8c0-402f-a133-2158492d58ad", 1 if on else 0),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "cpu_min_state", "Raise the minimum processor state", "CPU",
@@ -733,7 +733,7 @@ TWEAKS: list = [
         apply=lambda on: _powercfg_sub(
             "54533251-82be-4824-96c1-47b60b740d00",
             "893dee8e-2bef-41e0-89c6-b55d0929964c", 50 if on else 5),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "cpu_boost_aggressive", "Use aggressive boost mode", "CPU",
@@ -745,7 +745,7 @@ TWEAKS: list = [
         apply=lambda on: _powercfg_sub(
             "54533251-82be-4824-96c1-47b60b740d00",
             "be337238-0d82-4146-a960-4f3749d470c7", 2 if on else 3),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "heterogeneous_policy", "Favour performance cores", "CPU",
@@ -757,7 +757,7 @@ TWEAKS: list = [
         apply=lambda on: _powercfg_sub(
             "54533251-82be-4824-96c1-47b60b740d00",
             "7f2f5cfa-f10c-4823-b5e1-e93ae85f46b5", 1 if on else 0),
-        is_on=lambda: False),
+        is_on=None),
 
     PerfTweak(
         "interrupt_steering", "Spread device interrupts across cores", "CPU",
@@ -866,6 +866,123 @@ TWEAKS: list = [
                        "9012038010000000", "9e3e078012000000",
                        "Menu fade animation"),
         is_on=_is("HKCU", DESKTOP, "UserPreferencesMask", "9012038010000000")),
+
+    # ------------------------------------------------------- more CPU
+    PerfTweak(
+        "cpu_boost_mode_aggressive", "Aggressive processor boost", "CPU",
+        "Reaches boost clock sooner when load appears",
+        "Windows exposes several boost policies. 'Aggressive' ramps faster "
+        "for bursty workloads like games, where load arrives in spikes. This "
+        "uses the CPU's own rated boost - it changes no voltage, multiplier "
+        "or power limit, so it is not overclocking.",
+        apply=lambda on: _powercfg_sub(
+            "54533251-82be-4824-96c1-47b60b740d00",
+            "be337238-0d82-4146-a960-4f3749d470c7", 2 if on else 3),
+        is_on=None),
+
+    PerfTweak(
+        "cpu_perf_increase_fast", "Raise clocks faster under load", "CPU",
+        "Shortens the delay before the CPU steps up",
+        "Controls how quickly the processor raises its performance state "
+        "once demand appears. A shorter threshold reduces the lag between a "
+        "frame needing work and the CPU actually delivering it.",
+        apply=lambda on: _powercfg_sub(
+            "54533251-82be-4824-96c1-47b60b740d00",
+            "06cadf0e-64ed-448a-8927-ce7bf90eb35d", 10 if on else 60),
+        is_on=None),
+
+    PerfTweak(
+        "cpu_perf_decrease_slow", "Hold clocks up for longer", "CPU",
+        "Stops the CPU dropping speed the instant load dips",
+        "Between frames the CPU briefly idles. Dropping clocks immediately "
+        "and raising them again wastes time on every frame. Holding the "
+        "higher state a little longer smooths that out.",
+        warning="Slightly higher average power draw and temperature.",
+        apply=lambda on: _powercfg_sub(
+            "54533251-82be-4824-96c1-47b60b740d00",
+            "12a0ab44-fe28-4fa9-b3bd-4b64f44960a6", 90 if on else 60),
+        is_on=None),
+
+    PerfTweak(
+        "cpu_park_min_cores", "Keep all cores unparked", "CPU",
+        "Prevents Windows parking cores it thinks are idle",
+        "A parked core takes time to wake. On a bursty workload that shows "
+        "up in 1% lows rather than average FPS. Sets the minimum unparked "
+        "core count to 100%.",
+        warning="Raises idle power. On a laptop this shortens battery life "
+                "and can trigger thermal throttling.",
+        apply=lambda on: _powercfg_sub(
+            "54533251-82be-4824-96c1-47b60b740d00",
+            "0cc5b647-c1df-4637-891a-dec35c318583", 100 if on else 10),
+        is_on=None),
+
+    PerfTweak(
+        "cpu_timer_resolution", "Request a high-resolution timer", "System",
+        "Asks Windows for finer scheduling granularity",
+        "Since Windows 10 2004 a timer request applies only to the process "
+        "that made it, so this is far narrower than older guides claim. It "
+        "is included because it is genuinely requested by some games - "
+        "expect no measurable change on its own.",
+        apply=_reg("HKLM",
+                   r"SYSTEM\CurrentControlSet\Control\Session Manager"
+                   r"\kernel", "GlobalTimerResolutionRequests",
+                   1, 0, "Global timer resolution"),
+        is_on=_is("HKLM",
+                  r"SYSTEM\CurrentControlSet\Control\Session Manager"
+                  r"\kernel", "GlobalTimerResolutionRequests", 1)),
+
+    PerfTweak(
+        "cpu_distribute_timers", "Distribute timer interrupts", "CPU",
+        "Spreads clock interrupts instead of pinning them to core 0",
+        "Every timer interrupt lands on CPU 0 by default. When a game, its "
+        "anti-cheat and the network stack all want that core, the queue "
+        "shows up as DPC latency. Distributing them helps most on "
+        "high-core-count systems.",
+        apply=lambda on: _bcdedit("useplatformtick", "no" if on else "yes"),
+        is_on=None),
+
+    # ---------------------------------------------------- more NVIDIA
+    PerfTweak(
+        "nv_gsync_fullscreen", "Enable G-Sync for fullscreen", "NVIDIA",
+        "Matches display refresh to your frame rate",
+        "Eliminates tearing without V-Sync's latency penalty. Best paired "
+        "with a frame cap a few FPS below your refresh rate, which keeps you "
+        "inside the variable-refresh window where latency is lowest.",
+        apply=lambda on: [ws.write_registry(
+            "HKLM", NV_DRIVER, "EnableGsyncFullscreen", 1 if on else 0,
+            note="G-Sync fullscreen")],
+        is_on=_is("HKLM", NV_DRIVER, "EnableGsyncFullscreen", 1)),
+
+    PerfTweak(
+        "nv_ansel_off", "Disable NVIDIA Ansel and overlay hooks", "NVIDIA",
+        "Removes the driver's in-game capture injection",
+        "Ansel injects into every Direct3D game to provide screenshots. If "
+        "you never use it, that is a hook and a little overhead you are "
+        "paying for nothing. Known to conflict with some anti-cheat systems.",
+        apply=lambda on: [ws.write_registry(
+            "HKLM", NV_DRIVER, "EnableAnsel", 0 if on else 1,
+            note="NVIDIA Ansel")],
+        is_on=_is("HKLM", NV_DRIVER, "EnableAnsel", 0)),
+
+    PerfTweak(
+        "nv_dynamic_boost", "NVIDIA Dynamic Boost", "NVIDIA",
+        "Shifts power between CPU and GPU as the load moves",
+        "On laptops the CPU and GPU share a power budget. Dynamic Boost "
+        "moves headroom to whichever needs it, which genuinely helps when "
+        "you are GPU-bound. No effect on a desktop.",
+        apply=lambda on: _nvidia_power_mode(on),
+        is_on=None),
+
+    PerfTweak(
+        "nv_max_perf_3d", "Prefer maximum performance in 3D apps", "NVIDIA",
+        "Keeps the GPU at high clocks inside games specifically",
+        "Narrower than the global power mode: applies the preference to 3D "
+        "applications rather than the whole system, so the desktop still "
+        "clocks down.",
+        apply=lambda on: [ws.write_registry(
+            "HKLM", NV_DRIVER, "PowerMizerLevel", 1 if on else 0,
+            note="NVIDIA PowerMizer 3D level")],
+        is_on=_is("HKLM", NV_DRIVER, "PowerMizerLevel", 1)),
 ]
 
 BY_ID = {t.id: t for t in TWEAKS}
@@ -878,12 +995,31 @@ def by_category(category: str) -> list:
 
 
 def states() -> dict:
+    from . import tweakstate
+    out = {}
+    for t in TWEAKS:
+        detected = None
+        try:
+            detected = bool(t.is_on()) if t.is_on else None
+        except Exception:
+            detected = None
+        is_on, _label = tweakstate.resolve(t.id, detected,
+                                           detectable=detected is not None)
+        out[t.id] = is_on
+    return out
+
+
+def labelled_states() -> dict:
+    """Like states(), but with a label explaining where each answer came from."""
+    from . import tweakstate
     out = {}
     for t in TWEAKS:
         try:
-            out[t.id] = bool(t.is_on()) if t.is_on else False
+            detected = bool(t.is_on()) if t.is_on else None
         except Exception:
-            out[t.id] = False
+            detected = None
+        out[t.id] = tweakstate.resolve(t.id, detected,
+                                       detectable=detected is not None)
     return out
 
 
@@ -901,7 +1037,10 @@ def set_tweak(tweak_id: str, enabled: bool) -> tuple:
         changes = tweak.apply(enabled) or []
     except Exception as exc:
         return False, f"{tweak.name} failed: {exc}", []
-    return True, f"{tweak.name} {'enabled' if enabled else 'reverted'}.", changes
+    from . import tweakstate
+    tweakstate.remember(tweak_id, enabled, "Latency")
+    return True, (f"{tweak.name} "
+                  f"{'enabled' if enabled else 'reverted'}."), changes
 
 
 def summary() -> str:

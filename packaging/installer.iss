@@ -1,6 +1,6 @@
 ; Phantom Tweeks installer — Inno Setup 6
 #define AppName        "Phantom Tweeks"
-#define AppVersion     "0.2.7"
+#define AppVersion     "0.2.8"
 #define AppPublisher   "Phantom Tweeks"
 #define AppURL         "https://phantomtweeks.example"
 #define AppExeName     "PhantomTweeks.exe"

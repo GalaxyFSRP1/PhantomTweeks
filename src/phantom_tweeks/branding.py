@@ -6,7 +6,7 @@ APP_TAGLINE = "Optimize Smarter. Game Better."
 APP_DESCRIPTION = (
     "Advanced Windows performance optimization built around real system data."
 )
-VERSION = "0.2.7"
+VERSION = "0.2.8"
 PUBLISHER = "Phantom Tweeks"
 WEBSITE = "https://phantomtweeks.example"
 
