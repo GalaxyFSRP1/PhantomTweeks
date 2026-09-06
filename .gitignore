@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv*/
+dist/
+build/_work/
+*.spec.bak
+
+# ---- Licensing secrets: NEVER commit these ----
+admin/issuer-private.key
+admin/issued-keys.jsonl
+admin/revoked.json
+*.key
+!assets/*.key
