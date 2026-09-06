@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Download — Phantom Tweeks</title>
+<meta name="description" content="Download Phantom Tweeks for Windows 10 and 11. Installer and portable builds with published SHA-256 checksums.">
+<meta property="og:title" content="Download — Phantom Tweeks">
+<meta property="og:description" content="Download Phantom Tweeks for Windows 10 and 11. Installer and portable builds with published SHA-256 checksums.">
+<meta name="theme-color" content="#0a0d14">
+<link rel="icon" href="assets/phantom.svg" type="image/svg+xml">
+<style>
+/* Critical fallback. The external stylesheet once failed to deploy and the
+   site rendered as raw unstyled HTML. These rules guarantee a readable dark
+   page even with no CSS file at all; style.css overrides them when present. */
+:root{--bg:#0a0d14;--panel:#111725;--border:#222e47;--text:#e6ecf7;
+      --muted:#8493ad;--accent:#00e5c0}
+html{background:#0a0d14}
+body{background:var(--bg);color:var(--text);margin:0;
+     font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif}
+a{color:var(--accent);text-decoration:none}
+h1,h2,h3{line-height:1.2;letter-spacing:-.02em}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.btn{display:inline-block;padding:12px 22px;border-radius:8px;font-weight:600;
+     background:var(--accent);color:#04120f}
+.btn-ghost{background:transparent;color:var(--text);
+           border:1px solid var(--border)}
+.card{background:var(--panel);border:1px solid var(--border);
+      border-radius:12px;padding:22px}
+.muted,.lede{color:var(--muted)}
+img{max-width:100%}
+</style>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="nav"><div class="nav-inner">
+  <a class="brand" href="index.html"><svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<rect width="256" height="256" rx="56" fill="#141c2e"/>
+<path d="M128 44 96 52 72 76 64 110v72l21 14 21-14 22 14 22-14 21 14 21-14v-72l-8-34-24-24z" fill="none" stroke="#00e5c0" stroke-width="11" stroke-linejoin="round"/>
+<circle cx="107" cy="96" r="11" fill="#00e5c0"/><circle cx="149" cy="96" r="11" fill="#00e5c0"/>
+<rect x="97.5" y="152" width="15" height="16" rx="6" fill="#00e5c0"/>
+<rect x="120.5" y="141" width="15" height="27" rx="6" fill="#7b61ff"/>
+<rect x="143.5" y="130" width="15" height="38" rx="6" fill="#00e5c0"/></svg><span>PHANTOM <b>TWEEKS</b></span></a>
+  <nav class="nav-links"><a href="index.html">Home</a><a href="features.html">Features</a><a href="download.html" class="active">Download</a><a href="games.html">Games</a><a href="premium.html">Premium</a><a href="faq.html">FAQ</a><a href="support.html">Support</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="download.html" class="btn btn-primary btn-sm" style="margin-left:10px">Download</a></nav>
+</div></header>
+<section id="main" class="hero" style="padding:78px 0 56px"><div class="wrap">
+  <span class="eyebrow">⬇ Download</span>
+  <h1 style="font-size:clamp(34px,5.4vw,56px);font-weight:700;letter-spacing:-.025em;margin-bottom:16px">Download Phantom Tweeks</h1>
+  <p class="lede">Free for personal use. No account, no telemetry, and every change the application makes is reversible.</p><div class="hero-actions">
+       <a class="btn btn-primary" href="#builds">GET THE INSTALLER</a>
+       <a class="btn btn-ghost" href="#requirements">SYSTEM REQUIREMENTS</a>
+     </div>
+     <p class="hero-meta">Latest version 0.2.4 · Windows 10 &amp; 11 · 64-bit</p>
+</div></section>
+<section id="builds"><div class="wrap">
+  <div class="section-head"><div class="kicker">Builds</div><h2>Choose your build</h2>
+    <p>Both builds are identical in functionality. The installer registers shortcuts and
+       an optional PATH entry; the portable build runs from anywhere.</p></div>
+  <div class="grid g2">
+    <div class="card">
+      <span class="badge badge-accent">RECOMMENDED</span>
+      <h3 style="margin-top:14px">Installer</h3>
+      <p style="margin-bottom:18px">PhantomTweeks-Setup.exe — Start menu and desktop shortcuts,
+         optional CLI on PATH, clean uninstaller that keeps your backups so you can still restore.</p>
+      <table style="margin-bottom:18px">
+        <tr><td class="muted">Version</td><td data-live="version">0.2.4</td></tr>
+        <tr><td class="muted">Size</td><td data-live="size-setup">—</td></tr>
+        <tr><td class="muted">Platform</td><td>Windows 10 1809+ / Windows 11 · x64</td></tr>
+      </table>
+      <a class="btn btn-primary" id="dl-setup" href="/api/download?file=setup">⬇ Download Installer</a>
+    </div>
+    <div class="card">
+      <span class="badge badge-violet">PORTABLE</span>
+      <h3 style="margin-top:14px">Portable</h3>
+      <p style="margin-bottom:18px">PhantomTweeks-Portable.exe — a single file, no installation.
+         Stores its data next to the executable, so it leaves nothing behind on the host machine.</p>
+      <table style="margin-bottom:18px">
+        <tr><td class="muted">Version</td><td data-live="version">0.2.4</td></tr>
+        <tr><td class="muted">Size</td><td data-live="size-portable">—</td></tr>
+        <tr><td class="muted">Platform</td><td>Windows 10 1809+ / Windows 11 · x64</td></tr>
+      </table>
+      <a class="btn btn-ghost" id="dl-portable" href="/api/download?file=portable">⬇ Download Portable</a>
+    </div>
+  </div>
+  <div class="callout warn" id="dl-status" style="margin-top:32px">
+    <h4>⚠ Checking for the latest release…</h4>
+    <p>If this message does not update, no release has been published yet.
+       Push a version tag (for example <code class="hash">git tag v0.2.4</code>
+       then <code class="hash">git push origin v0.2.4</code>) and GitHub Actions
+       will build and attach the binaries automatically.</p>
+  </div>
+
+  <div class="callout" id="dl-checksums" style="margin-top:20px;display:none">
+    <h4>SHA-256 for this release</h4>
+    <p class="muted">Compare these with the hash of the file you downloaded.</p>
+    <p id="dl-hashes" style="font-family:ui-monospace,monospace;font-size:13px;
+       word-break:break-all;line-height:1.9"></p>
+  </div>
+</div></section>
+
+<section class="alt" id="verify"><div class="wrap">
+  <div class="section-head"><div class="kicker">Integrity</div><h2>Verify what you downloaded</h2>
+    <p>Always check the SHA-256 hash before running an executable that changes system settings —
+       including this one.</p></div>
+  <table>
+    <thead><tr><th>File</th><th>SHA-256</th></tr></thead>
+    <tbody>
+      <tr><td>PhantomTweeks-Setup.exe</td><td><code class="hash">published with each signed release</code></td></tr>
+      <tr><td>PhantomTweeks-Portable.exe</td><td><code class="hash">published with each signed release</code></td></tr>
+      <tr><td>PhantomTweeks.exe</td><td><code class="hash">published with each signed release</code></td></tr>
+    </tbody>
+  </table>
+  <div class="callout" style="margin-top:26px"><h4>Verify in PowerShell</h4>
+    <p><code class="hash">Get-FileHash .\PhantomTweeks-Setup.exe -Algorithm SHA256</code><br>
+       Compare the result with the value published here. If it differs, delete the file.</p></div>
+  <p style="color:var(--muted);font-size:15px">Releases should also be Authenticode-signed.
+     Right-click the file → Properties → Digital Signatures to confirm the publisher.</p>
+</div></section>
+
+<section id="requirements"><div class="wrap">
+  <div class="section-head"><div class="kicker">Requirements</div><h2>System requirements</h2></div>
+  <div class="grid g2">
+    <div class="card"><h3>Minimum</h3>
+      <table style="margin-top:12px">
+        <tr><td class="muted">OS</td><td>Windows 10 1809 (17763) or Windows 11</td></tr>
+        <tr><td class="muted">Architecture</td><td>x64</td></tr>
+        <tr><td class="muted">Memory</td><td>4 GB RAM</td></tr>
+        <tr><td class="muted">Disk</td><td>120 MB free</td></tr>
+        <tr><td class="muted">Rights</td><td>Standard user (most features)</td></tr>
+      </table></div>
+    <div class="card"><h3>For full functionality</h3>
+      <table style="margin-top:12px">
+        <tr><td class="muted">Rights</td><td>Administrator (machine-wide settings such as GPU scheduling)</td></tr>
+        <tr><td class="muted">Frame data</td><td>Intel PresentMon (free) for frame-time capture</td></tr>
+        <tr><td class="muted">GPU telemetry</td><td>NVIDIA driver with nvidia-smi, or vendor tooling</td></tr>
+        <tr><td class="muted">Network tests</td><td>ICMP permitted through your firewall</td></tr>
+      </table></div>
+  </div>
+  <div class="callout" style="margin-top:28px"><h4>Phantom Tweeks does not bundle third-party tools</h4>
+    <p>Frame-time capture uses Intel PresentMon if you install it yourself. Phantom Tweeks
+       will not download executables in the background, and it will never estimate FPS in
+       place of a real measurement.</p></div>
+</div></section>
+
+<section class="alt" id="releases"><div class="wrap">
+  <div class="section-head"><div class="kicker">Release notes</div><h2>What's new</h2></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+      <h3 style="font-size:21px">Version 0.2.4</h3>
+      <span class="badge badge-accent">LATEST</span>
+    </div>
+    <ul class="check">
+      <li><strong>DNS Lab</strong> — 24 providers benchmarked with real UDP queries from your machine, one-click switching, and a one-click undo. States honestly that DNS does not change in-game ping</li>
+      <li><strong>Automatic updates</strong> — a daily background check; downloads are verified against their published SHA-256 and staged for you to install. Never runs anything on its own, never checks during a game</li>
+      <li><strong>Maintenance Mode</strong> — scheduled safe housekeeping that refuses to run while a game is detected and never deletes personal files</li>
+      <li><strong>Performance Trends</strong> — local history that reports changes smaller than measurement noise as "no real change" instead of a win</li>
+      <li><strong>Live game auto-detection</strong> — notices a game starting after the app, or already running when it opens</li>
+      <li><strong>Help &amp; Diagnostics</strong> — a self-test that says whether a problem is ours or your system's</li>
+      <li><strong>Assisted PresentMon install</strong> — fetches Intel's official build so frame-time capture works out of the box</li>
+      <li><strong>Fixes</strong> — power plans now explain that they need administrator rights instead of failing silently; no more console windows flashing during monitoring; the installer creates your data folder up front</li>
+    </ul>
+  </div>
+
+  <div class="card mt-3">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+      <h3 style="font-size:21px">Version 0.1.2 — Initial release</h3>
+    </div>
+    <ul class="check">
+      <li><strong>Phantom Shield</strong> — protection for games, launchers, anti-cheat, voice chat, capture, GPU and input software, and essential Windows processes</li>
+      <li><strong>Optimization engine</strong> — hardware-aware evaluators with confidence ratings and "no change recommended" outcomes</li>
+      <li><strong>Backup vault</strong> — per-change journaling, individual rollback and one-click RESTORE EVERYTHING</li>
+      <li><strong>Frame-Time Analyzer</strong> — 1% and 0.1% lows, pacing score, stutter detection, PresentMon and CSV import</li>
+      <li><strong>Network Lab</strong> — gateway/internet isolation, jitter, packet loss, DNS benchmark, route diagnostics and local history</li>
+      <li><strong>Bottleneck detection</strong> — GPU-bound, CPU-bound, memory and network verdicts from sampled utilisation</li>
+      <li><strong>Driver Center, Storage Lab, Startup Manager, System Health Center, Background Analyzer</strong></li>
+      <li><strong>Game detection</strong> across Steam, Epic, Xbox, Battle.net, Riot, EA, Ubisoft and GOG</li>
+      <li><strong>Full CLI</strong> with confirmation-gated mutating commands</li>
+      <li><strong>Premium architecture</strong> present but inert — no payment code, no fake unlocks</li>
+    </ul>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <a class="brand" href="index.html" style="margin-bottom:14px"><svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<rect width="256" height="256" rx="56" fill="#141c2e"/>
+<path d="M128 44 96 52 72 76 64 110v72l21 14 21-14 22 14 22-14 21 14 21-14v-72l-8-34-24-24z" fill="none" stroke="#00e5c0" stroke-width="11" stroke-linejoin="round"/>
+<circle cx="107" cy="96" r="11" fill="#00e5c0"/><circle cx="149" cy="96" r="11" fill="#00e5c0"/>
+<rect x="97.5" y="152" width="15" height="16" rx="6" fill="#00e5c0"/>
+<rect x="120.5" y="141" width="15" height="27" rx="6" fill="#7b61ff"/>
+<rect x="143.5" y="130" width="15" height="38" rx="6" fill="#00e5c0"/></svg><span>PHANTOM <b>TWEEKS</b></span></a>
+      <p style="color:var(--muted);font-size:14.5px;max-width:320px">
+        Optimize Smarter. Game Better. Advanced Windows performance optimization
+        built around real system data — safe, measurable and reversible.
+      </p>
+    </div>
+    <div><h5>Product</h5>
+      <a href="features.html">Features</a><a href="download.html">Download</a>
+      <a href="games.html">Games</a><a href="premium.html">Premium</a>
+    </div>
+    <div><h5>Resources</h5>
+      <a href="faq.html">FAQ</a><a href="support.html">Support</a>
+      <a href="download.html#requirements">System Requirements</a>
+      <a href="download.html#releases">Release Notes</a>
+    </div>
+    <div><h5>Legal</h5>
+      <a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a>
+      <a href="privacy.html#data">Data Handling</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Phantom Tweeks. Windows is a trademark of Microsoft Corporation.</span>
+    <span>No telemetry. No tracking. No nonsense.</span>
+  </div>
+</div></footer>
+
+<script>
+// Populates version, sizes and checksums from the published GitHub Release.
+// Falls back silently to the static text if the API is not configured yet.
+(function () {
+  var statusBox = document.getElementById('dl-status');
+
+  function downloadButtons() {
+    return [document.getElementById('dl-setup'),
+            document.getElementById('dl-portable')].filter(Boolean);
+  }
+
+  function disableDownloads(label) {
+    downloadButtons().forEach(function (b) {
+      b.dataset.href = b.getAttribute('href');
+      b.removeAttribute('href');
+      b.setAttribute('aria-disabled', 'true');
+      b.style.opacity = '.45';
+      b.style.cursor = 'not-allowed';
+      b.title = 'No release has been published yet.';
+      b.textContent = label;
+    });
+  }
+
+  function enableDownloads() {
+    downloadButtons().forEach(function (b) {
+      if (b.dataset.href) b.setAttribute('href', b.dataset.href);
+      b.removeAttribute('aria-disabled');
+      b.style.opacity = '';
+      b.style.cursor = '';
+    });
+  }
+
+  // Assume unavailable until the API says otherwise, so a slow or failed
+  // request can never leave a dead download link clickable.
+  disableDownloads('Checking availability...');
+  fetch('/api/latest', { headers: { 'Accept': 'application/json' } })
+    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+    .then(function (res) {
+      var d = res.d;
+      if (!res.ok || !d.available) {
+        if (statusBox) {
+          statusBox.querySelector('h4').textContent = 'No release published yet';
+          statusBox.querySelector('p').innerHTML =
+            (d && d.message ? d.message : 'Downloads are not available yet.');
+        }
+        // Leaving the buttons live sends people to an endpoint that cannot
+        // serve anything, which surfaced as an opaque 502 Bad Gateway. Disable
+        // them and say why, rather than letting the visitor hit a dead link.
+        disableDownloads('Not released yet');
+        return;
+      }
+      enableDownloads();
+
+      document.querySelectorAll('[data-live="version"]').forEach(function (el) {
+        el.textContent = d.version || el.textContent;
+      });
+
+      var byName = {};
+      (d.files || []).forEach(function (f) { byName[f.name] = f; });
+
+      var setup = byName['PhantomTweeks-Setup.exe'];
+      var portable = byName['PhantomTweeks-Portable.exe'];
+      var sizeSetup = document.querySelector('[data-live="size-setup"]');
+      var sizePortable = document.querySelector('[data-live="size-portable"]');
+      if (setup && sizeSetup) sizeSetup.textContent = setup.size_mb + ' MB';
+      if (portable && sizePortable) sizePortable.textContent = portable.size_mb + ' MB';
+
+      if (statusBox) {
+        statusBox.querySelector('h4').textContent =
+          'Version ' + d.version + (d.prerelease ? ' (pre-release)' : '') +
+          ' — published ' + (d.published || 'recently');
+        statusBox.querySelector('p').textContent = d.note || '';
+      }
+
+      var hashes = (d.files || []).filter(function (f) { return f.sha256; });
+      if (hashes.length) {
+        var box = document.getElementById('dl-checksums');
+        var out = document.getElementById('dl-hashes');
+        out.innerHTML = hashes.map(function (f) {
+          return '<strong>' + f.name + '</strong><br>' + f.sha256;
+        }).join('<br><br>');
+        box.style.display = '';
+      }
+    })
+    .catch(function () {
+      disableDownloads('Unavailable');
+      if (statusBox) {
+        statusBox.querySelector('h4').textContent = 'Downloads unavailable';
+        statusBox.querySelector('p').textContent =
+          'Could not reach the download service. Please try again shortly.';
+      }
+    });
+})();
+</script>
+</body></html>
