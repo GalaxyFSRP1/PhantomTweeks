@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Phantom Tweeks</title>
+<meta name="description" content="Phantom Tweeks collects nothing, transmits nothing and sells nothing. Full privacy policy.">
+<meta property="og:title" content="Privacy Policy — Phantom Tweeks">
+<meta property="og:description" content="Phantom Tweeks collects nothing, transmits nothing and sells nothing. Full privacy policy.">
+<meta name="theme-color" content="#0a0d14">
+<link rel="icon" href="assets/phantom.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="nav"><div class="nav-inner">
+  <a class="brand" href="index.html"><svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<rect width="256" height="256" rx="56" fill="#141c2e"/>
+<path d="M128 44 96 52 72 76 64 110v72l21 14 21-14 22 14 22-14 21 14 21-14v-72l-8-34-24-24z" fill="none" stroke="#00e5c0" stroke-width="11" stroke-linejoin="round"/>
+<circle cx="107" cy="96" r="11" fill="#00e5c0"/><circle cx="149" cy="96" r="11" fill="#00e5c0"/>
+<rect x="97.5" y="152" width="15" height="16" rx="6" fill="#00e5c0"/>
+<rect x="120.5" y="141" width="15" height="27" rx="6" fill="#7b61ff"/>
+<rect x="143.5" y="130" width="15" height="38" rx="6" fill="#00e5c0"/></svg><span>PHANTOM <b>TWEEKS</b></span></a>
+  <nav class="nav-links"><a href="index.html">Home</a><a href="features.html">Features</a><a href="download.html">Download</a><a href="games.html">Games</a><a href="premium.html">Premium</a><a href="faq.html">FAQ</a><a href="support.html">Support</a><a href="privacy.html" class="active">Privacy</a><a href="terms.html">Terms</a><a href="download.html" class="btn btn-primary btn-sm" style="margin-left:10px">Download</a></nav>
+</div></header>
+<section id="main" class="hero" style="padding:78px 0 56px"><div class="wrap">
+  <span class="eyebrow">🔒 Privacy</span>
+  <h1 style="font-size:clamp(34px,5.4vw,56px);font-weight:700;letter-spacing:-.025em;margin-bottom:16px">Privacy Policy</h1>
+  <p class="lede">The short version: Phantom Tweeks collects nothing, transmits nothing, and sells nothing. Here is the long version.</p>
+</div></section><section><div class="wrap"><div class="prose">
+<p class="updated">Last updated: 5 September 2026 · Applies to Phantom Tweeks 0.1.4</p>
+
+<div class="callout"><h4>Summary</h4>
+<p>Phantom Tweeks runs entirely on your computer. There is no analytics endpoint compiled into
+the application, no account requirement, and no background network activity other than the
+diagnostic tests you explicitly run and the optional update check.</p></div>
+
+<h2 id="data">What we collect</h2>
+<p><strong>Nothing.</strong> Phantom Tweeks does not collect, transmit, sell, rent or share any
+personal information. There is no user account, no device fingerprint sent anywhere, and no
+hidden analytics.</p>
+
+<h2>What stays on your device</h2>
+<p>The application reads and stores the following locally, in a single folder you control:</p>
+<ul>
+<li><strong>Hardware information</strong> — CPU, GPU, memory, storage and driver details, used to generate recommendations.</li>
+<li><strong>Game information</strong> — installed and running games detected from launcher manifests, used for profile matching.</li>
+<li><strong>Performance data</strong> — benchmark captures, frame-time statistics and session samples.</li>
+<li><strong>Network results</strong> — latency, jitter and packet-loss history from tests you run.</li>
+<li><strong>Configuration and backups</strong> — your settings and the prior values of every change made.</li>
+<li><strong>Logs and crash reports</strong> — application activity and stack traces.</li>
+</ul>
+<p>All of it lives in <strong>%LOCALAPPDATA%\PhantomTweeks</strong> (or beside the executable in
+the portable build). Deleting that folder removes every trace of your data.</p>
+
+<h2>Network activity</h2>
+<p>Phantom Tweeks makes network requests in exactly two circumstances:</p>
+<ul>
+<li><strong>Diagnostic tests you start.</strong> The Network Lab sends ICMP echo requests to your gateway, to public IP addresses such as 1.1.1.1, and to DNS resolvers you have selected. These carry no personal data — they are ping packets.</li>
+<li><strong>Update checks.</strong> If enabled, the application requests a version manifest over HTTPS. The request contains no identifying information beyond what any HTTPS client necessarily reveals, and it can be disabled in Settings → Updates.</li>
+</ul>
+
+<h2>Crash reports</h2>
+<p>If the application crashes, a report is written to your local disk containing the stack trace,
+the application version and basic system information such as OS build and architecture. It
+contains no personal files, no credentials and no game data.</p>
+<p><strong>Crash reports are never uploaded automatically.</strong> If you choose to share one to
+help diagnose a problem, that is an action you take deliberately.</p>
+
+<h2>Optional sharing settings</h2>
+<p>Three settings exist in Settings → Privacy: telemetry, hardware information sharing and game
+information sharing. <strong>All three default to off, and there is currently no endpoint for
+them to send data to.</strong> They exist so that if such a feature is ever added, it is opt-in
+by construction rather than opt-out by apology.</p>
+
+<h2>Third parties</h2>
+<p>Phantom Tweeks bundles no third-party analytics, advertising or tracking SDKs. It does not
+integrate with social platforms. Optional frame-time capture uses Intel PresentMon only if you
+install it yourself; that is a local process, not a service.</p>
+
+<h2>Children</h2>
+<p>Phantom Tweeks is a system utility not directed at children and collects no information from
+anyone, including children.</p>
+
+<h2>Future changes</h2>
+<p>If a future version introduces any data collection, it will be opt-in, disclosed on this page
+before release, and clearly presented in the application. Silent introduction of telemetry would
+contradict the reason this product exists.</p>
+
+<h2>Your rights</h2>
+<p>Because no data is collected, there is nothing to request, correct or delete on our side. Your
+data is on your disk, under your control, in a plain folder you can inspect and remove at any
+time.</p>
+
+<h2>Contact</h2>
+<p>Privacy questions can be raised through the <a href="support.html">Support</a> page.</p>
+</div></div></section>
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <a class="brand" href="index.html" style="margin-bottom:14px"><svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<rect width="256" height="256" rx="56" fill="#141c2e"/>
+<path d="M128 44 96 52 72 76 64 110v72l21 14 21-14 22 14 22-14 21 14 21-14v-72l-8-34-24-24z" fill="none" stroke="#00e5c0" stroke-width="11" stroke-linejoin="round"/>
+<circle cx="107" cy="96" r="11" fill="#00e5c0"/><circle cx="149" cy="96" r="11" fill="#00e5c0"/>
+<rect x="97.5" y="152" width="15" height="16" rx="6" fill="#00e5c0"/>
+<rect x="120.5" y="141" width="15" height="27" rx="6" fill="#7b61ff"/>
+<rect x="143.5" y="130" width="15" height="38" rx="6" fill="#00e5c0"/></svg><span>PHANTOM <b>TWEEKS</b></span></a>
+      <p style="color:var(--muted);font-size:14.5px;max-width:320px">
+        Optimize Smarter. Game Better. Advanced Windows performance optimization
+        built around real system data — safe, measurable and reversible.
+      </p>
+    </div>
+    <div><h5>Product</h5>
+      <a href="features.html">Features</a><a href="download.html">Download</a>
+      <a href="games.html">Games</a><a href="premium.html">Premium</a>
+    </div>
+    <div><h5>Resources</h5>
+      <a href="faq.html">FAQ</a><a href="support.html">Support</a>
+      <a href="download.html#requirements">System Requirements</a>
+      <a href="download.html#releases">Release Notes</a>
+    </div>
+    <div><h5>Legal</h5>
+      <a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a>
+      <a href="privacy.html#data">Data Handling</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Phantom Tweeks. Windows is a trademark of Microsoft Corporation.</span>
+    <span>No telemetry. No tracking. No nonsense.</span>
+  </div>
+</div></footer>
+</body></html>
